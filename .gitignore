@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Results/MCMC/
+Data/Processed/
+Data/Prism/
+Code/Stan_Models/.Rapp.history
+Results/Stan/

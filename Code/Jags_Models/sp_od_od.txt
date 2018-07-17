@@ -1,0 +1,72 @@
+
+    model{
+    # Priors
+    alpha.lam ~ dnorm(0, 0.01)
+  
+    
+    alpha.p ~ dnorm(0, 0.01)
+    
+    sigma.p ~ dunif(0, 3)
+    tau.p <- pow(sigma.p, -2)
+    
+    for(i in 1:n.transects){
+    for(j in 1:n.surveys){
+    delta.p[i,j] ~ dnorm(alpha.p, tau.p)
+    }
+    }
+    
+    # Spatial component (kriging)
+    W[1:n.transects] ~ dmnorm(muW[], Omega[,]) 
+    tauw ~ dgamma(0.001, 0.001)
+    w <- 1/sqrt(tauw) # spatial SD
+    # theta ~ dgamma(0.01, 0.01) # spatial correlation rate
+# theta ~ dunif(0.0001, 1000) # spatial correlation rate
+    theta ~ dnorm(0, 0.01)T(0.00001, 1000) # spatial correlation rate
+    for (i in 1:n.transects){ 
+    for(j in 1:n.transects){
+    # H[i, j] <- (1/tauw) * exp(-theta*pow(d[i,j] ,2)) # Spatial covariance matrix
+    # H[i, j] <- (1/tauw) * exp(-theta*d[i,j]) # Spatial covariance matrix
+    H[i, j] <- (1/tauw) * exp(-d[i,j] / theta) # Spatial covariance matrix
+    }
+    mu.lam[i] ~ dnorm(alpha.lam, tau.lam)
+    # muW[i] <- mu.lam[i]
+muW[i] <- 0
+    }
+    
+    tau.lam <- 1 / (sigma.lam * sigma.lam)
+    sigma.lam ~ dunif(0, 3)
+    
+    Omega[1:n.transects, 1:n.transects] <- inverse(H[1:n.transects, 1:n.transects]) # spatial precision mat
+    
+    # Likelihood
+    for(i in 1:n.transects){
+    N[i] ~ dpois(lambda[i])
+    
+    log(lambda[i]) <- mu.lam[i] + W[i]
+    
+    for(j in 1:n.surveys){
+    C[i, j] ~ dbin(p[i, j], N[i])
+    p[i,j] <- 1 / (1 + exp(-lp.lim[i,j]))    
+    lp.lim[i,j] <- min(999, max(-999, lp[i,j])) # Help stabilize the logit
+    
+    lp[i, j] <- delta.p[i,j]
+    
+    # Assess model fit using Chi-squared discrepancy
+    # Compute fit statistic for observed data
+    eval[i,j] <- p[i,j] * N[i]
+    E[i,j] <- pow((C[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
+    # Generate replicate data and compute fit stats for them
+    y.new[i,j] ~ dbin(p[i,j], N[i])
+    E.new[i,j] <- pow((y.new[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5) 
+    
+    diff.cy[i,j] <- C[i,j] - y.new[i,j]
+    }
+    }
+    
+    # Derived quantities
+    totalN<- sum(N[])
+    fit <- sum(E[,])
+    fit.new <- sum(E.new[,])
+    
+    }
+    
