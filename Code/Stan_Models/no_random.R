@@ -150,3 +150,4 @@ print(loo_1)
 # Bayesian p-value check
 plot(no_random_pjor, par = c("fit", "fit_new"))
 
+
