@@ -2,6 +2,8 @@
 data {
   int<lower=0> R;       // Number of transects
   int<lower=0> T;       // Number of temporal replications
+  int<lower=0> nsites;       // Number of sites
+  int<lower=1> sites[R];       // vector of sites
   int<lower=0> y[R, T]; // Counts
   vector[R] elev;          // Covariate
   vector[R] elev2;          // Covariate
@@ -118,55 +120,6 @@ generated quantities {
     // matrix[K + 1, T] lp;
    // vector[50] log_lik;
   
-    
- // Likelihood for use in loo-cv
-  // for (i in 1:R) {
-  //   for(j in 1:T) {
-  //   for (f in 1:foo[i]) {
-  //     log_lik[f] = poisson_log_lpmf(max_y[i] + f - 1 | log_lambda[i])
-  //            + binomial_logit_lpmf(y[i, j] | max_y[i] + f - 1, logit_p[i, j]);
-  //   }
-  // }
-  // }
-  
-   // Likelihood for use in loo-cv
-  // for (i in 1:R) {
-  //   N[i] = poisson_log_rng(log_lambda[i]);
-  //   for(j in 1:T) {
-  //     log_lik[i, j] = poisson_log_lpmf(N[i] | log_lambda[i])
-  //            + binomial_logit_lpmf(y[i, j] | N[i], logit_p[i, j]);
-  //   }
-  // }
-  
-        // for (i in 1:R) {
-      // for (j in 1:T) {
-        // p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
-
-        // for (n in 0:(max_y[i] - 1))
-        //   log_lik[n + 1] = negative_infinity();
-          // log_lik[n + 1] = -10^6;
-      //   for (n in max_y[i]:K) {
-      //     log_lik[n + 1] = poisson_log_lpmf(n | log_lambda[i])
-      //       + binomial_lpmf(y[i, 1:T] | n, p[i, 1:T]);
-      //   }
-      // N[i] = poisson_log_rng(log_lambda[i]);
-      //   }
-
-  // for (i in 1:R)
-  //   N[i] = poisson_log_rng(log_lambda[i]);
-  // totalN = sum(N);
-  
-     // Likelihood for use in loo-cv
-     
-  //      for (i in 1:R) {
-  //   for (j in 1:(K - max_y[i] + 1)) {
-  //   for(t in 1:T) {
-  //     log_lik[i, t, j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
-  //            + binomial_logit_lpmf(y[i, t] | max_y[i] + j - 1, logit_p[i, t]);
-  // }
-  //      }
-  //      }
-  
     for (i in 1:R) {
     vector[K - max_y[i] + 1] ll;
 
@@ -226,54 +179,4 @@ generated quantities {
       fit_new = fit_new + sum(E_new[i]);
     }
   mean_abundance = exp(alpha0);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-transformed parameters {
-  vector[R] log_lambda; // Log population size
-  matrix[R, T] logit_p; // Logit detection probability
-
-for (i in 1:R) {
-  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha2 * elev[i]^2 + alpha3 * litter[i] + eps[sites[i]];
-  for (t in 1:T) {
-  logit_p[i,t] = beta0 + beta1 * RH[i,t] + beta2 * temp[i,t] + beta3 * temp[i,t]^2 + beta4 * gcover[i] + beta5 * gcover[i]^2 + delta[i, t];
-  }
-}
-}
-
-model {
-  // Priors
-  // Improper flat priors are implicitly used on
-  // alpha0, alpha1, beta0 and beta1.
-
-
-  
-  // Likelihood
-  for (i in 1:R) {
-    vector[K - max_y[i] + 1] lp;
-
-    for (j in 1:(K - max_y[i] + 1))
-      lp[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
-             + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
-    target += log_sum_exp(lp);
-  }
-}
-
-generated quantities {
-  int N[R];
-  int totalN;
-
-  for (i in 1:R)
-    N[i] = poisson_log_rng(log_lambda[i]);
-  totalN = sum(N);
 }

@@ -1,10 +1,12 @@
-## 12. Metapopulation modeling of abundance using
-##     hierarchical Poisson regression: binomial mixture models
-## 12.2. Generation and analysis of simulated data
-## 12.2.2. Introducing covariates
+## Random site effects on abundance and random binomial overdispersion with random transect-visit effect
 
+# Load Libraries
 library(rstan)
 library(dplyr)
+
+# Settings
+testing <- FALSE # settings to run quickly when testing model changes = TRUE
+
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 set.seed(123)
@@ -67,8 +69,6 @@ params <- c("totalN",
             "fit_new")
 
 ## MCMC settings
-testing <- TRUE
-
 if(testing) {
   nb = 400
   ni = 600
@@ -99,10 +99,12 @@ inits <- lapply(1:nc, function(i)
 
 ## Call Stan from R
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-out <- stan("Code/Stan_Models/site_od.stan",
+site_od_pjor <- stan("Code/Stan_Models/site_od.stan",
             data = list(y = PJOR5, 
                         R = n.transects, 
                         T = n.surveys, 
+                        nsites = n.sites,
+                        sites = Data5$site_stan,
                         elev = elev5,
                         elev2 = elev5^2,
                         litter = litter5,
@@ -120,20 +122,20 @@ out <- stan("Code/Stan_Models/site_od.stan",
             verbose = TRUE)
 
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-saveRDS(no_random_pjor, file = "Results/Stan/no_random_pjor_hmc.Rds")
+saveRDS(site_od_pjor, file = "Results/Stan/site_od_pjor_hmc.Rds")
 
-print(no_random_pjor, digits = 3)
-plot(no_random_pjor, par = c("alpha0", "alpha1", "alpha2", "beta0", "beta1", "fit", "fit_new"))
-traceplot(no_random_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "sd_eps", "sd_p"))
+print(site_od_pjor, digits = 3)
+plot(site_od_pjor, par = c("alpha0", "alpha1", "alpha2", "beta0", "beta1", "fit", "fit_new"))
+traceplot(site_od_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "sd_eps", "sd_p"))
 
-print(no_random_pjor, par = "lp", digits = 2)
+print(site_od_pjor, par = "lp", digits = 2)
 
 library("rstanarm")
 library("bayesplot")
 library("loo")
 
 # Extract pointwise log-likelihood and compute LOO
-log_lik_1 <- extract_log_lik(no_random_pjor, parameter_name = "log_lik", merge_chains = FALSE)
+log_lik_1 <- extract_log_lik(site_od_pjor, parameter_name = "log_lik", merge_chains = FALSE)
 
 # removeal all -inf
 
@@ -144,6 +146,8 @@ r_eff <- relative_eff(exp(log_lik_1))
 loo_1 <- loo(log_lik_1, r_eff = r_eff, cores = nc)
 print(loo_1)
 
+psis_od <- psis(log_lik_1)
+
 # Bayesian p-value check
-plot(no_random_pjor, par = c("fit", "fit_new"))
+plot(site_od_pjor, par = c("fit", "fit_new"))
 
