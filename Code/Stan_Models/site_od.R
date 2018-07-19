@@ -1,5 +1,7 @@
 ## Random site effects on abundance and random binomial overdispersion with random transect-visit effect
 
+# Based on code by Hiroki ITÔ translated from chapter 12 of Kery and Schuab Bayesian Population Analysis 
+
 # Load Libraries
 library(rstan)
 library(dplyr)
