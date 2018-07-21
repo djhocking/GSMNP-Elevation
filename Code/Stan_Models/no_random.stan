@@ -64,89 +64,22 @@ model {
              + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
     target += log_sum_exp(lp);
   }
-  
-//     for (i in 1:R) {
-//     vector[K - max_y[i] + 1] lp;
-// for (t in 1:T) {
-//     for (j in 1:(K - max_y[i] + 1))
-//       lp[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
-//              + binomial_logit_lpmf(y[i, t] | max_y[i] + j - 1, logit_p[i, t]);
-//     target += log_sum_exp(lp);
-// }
-//   }
 }
 
 generated quantities {
   int<lower=0> N[R];                // Abundance
   int totalN;
   vector[R] log_lik;
-  // vector[N_ll] log_lik;
-  // matrix[R, T] log_lik;
-  // vector[K + 1] log_lik;
-  // matrix[N_ll, T] log_lik;
   real mean_abundance;
   real fit = 0;
   real fit_new = 0;
   matrix[R, T] p; 
-
     matrix[R, T] eval;         // Expected values
     int y_new[R, T];
     matrix[R, T] E;
     matrix[R, T] E_new;
-    //  matrix[T, 1] E[R];
-    // matrix[T, 1] E_new[R];
     vector[K + 1] lp;
-    // matrix[K + 1, T] lp;
-   // vector[50] log_lik;
-  
-    
- // Likelihood for use in loo-cv
-  // for (i in 1:R) {
-  //   for(j in 1:T) {
-  //   for (f in 1:foo[i]) {
-  //     log_lik[f] = poisson_log_lpmf(max_y[i] + f - 1 | log_lambda[i])
-  //            + binomial_logit_lpmf(y[i, j] | max_y[i] + f - 1, logit_p[i, j]);
-  //   }
-  // }
-  // }
-  
-   // Likelihood for use in loo-cv
-  // for (i in 1:R) {
-  //   N[i] = poisson_log_rng(log_lambda[i]);
-  //   for(j in 1:T) {
-  //     log_lik[i, j] = poisson_log_lpmf(N[i] | log_lambda[i])
-  //            + binomial_logit_lpmf(y[i, j] | N[i], logit_p[i, j]);
-  //   }
-  // }
-  
-        // for (i in 1:R) {
-      // for (j in 1:T) {
-        // p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
 
-        // for (n in 0:(max_y[i] - 1))
-        //   log_lik[n + 1] = negative_infinity();
-          // log_lik[n + 1] = -10^6;
-      //   for (n in max_y[i]:K) {
-      //     log_lik[n + 1] = poisson_log_lpmf(n | log_lambda[i])
-      //       + binomial_lpmf(y[i, 1:T] | n, p[i, 1:T]);
-      //   }
-      // N[i] = poisson_log_rng(log_lambda[i]);
-      //   }
-
-  // for (i in 1:R)
-  //   N[i] = poisson_log_rng(log_lambda[i]);
-  // totalN = sum(N);
-  
-     // Likelihood for use in loo-cv
-     
-  //      for (i in 1:R) {
-  //   for (j in 1:(K - max_y[i] + 1)) {
-  //   for(t in 1:T) {
-  //     log_lik[i, t, j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
-  //            + binomial_logit_lpmf(y[i, t] | max_y[i] + j - 1, logit_p[i, t]);
-  // }
-  //      }
-  //      }
   
     for (i in 1:R) {
     vector[K - max_y[i] + 1] ll;
