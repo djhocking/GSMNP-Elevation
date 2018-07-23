@@ -6,13 +6,12 @@ data {
   int<lower=1> sites[R];       // vector of sites
   int<lower=0> y[R, T]; // Counts
   vector[R] elev;          // Covariate
-  vector[R] elev2;          // Covariate
   vector[R] litter;          // Covariate
   matrix[R, T] RH;      // Covariate
   matrix[R, T] temp;      // Covariate
   matrix[R, T] temp2;      // Covariate
   vector[R] gcover;      // Covariate
-  vector[R] gcover2;      // Covariate
+  // vector[R] gcover2;      // Covariate
   int<lower=0> K;       // Upper bound of population size
 }
 
@@ -33,7 +32,6 @@ transformed data {
 parameters {
   real alpha0;
   real alpha1;
-  real alpha2;
   real alpha3;
   real beta0;
   real beta1;
@@ -53,9 +51,9 @@ transformed parameters {
   matrix[R, T] logit_p; // Logit detection probability
 
   for (i in 1:R) {
-  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha2 * elev2[i] + alpha3 * litter[i] + eps[sites[i]];
+  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha3 * litter[i] + eps[sites[i]];
   for (t in 1:T) {
-  logit_p[i,t] = beta0 + beta1 * RH[i,t] + beta2 * temp[i,t] + beta3 * temp2[i,t] + beta4 * gcover[i] + delta[i, t];
+  logit_p[i,t] = beta0 + beta1 * RH[i,t] + beta2 * temp[i,t] + beta3 * temp2[i,t] + beta4 * gcover[i] + delta[i,t];
   }
 }
 }
@@ -85,16 +83,6 @@ model {
              + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
     target += log_sum_exp(lp);
   }
-  
-//     for (i in 1:R) {
-//     vector[K - max_y[i] + 1] lp;
-// for (t in 1:T) {
-//     for (j in 1:(K - max_y[i] + 1))
-//       lp[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
-//              + binomial_logit_lpmf(y[i, t] | max_y[i] + j - 1, logit_p[i, t]);
-//     target += log_sum_exp(lp);
-// }
-//   }
 }
 
 generated quantities {
@@ -114,11 +102,7 @@ generated quantities {
     int y_new[R, T];
     matrix[R, T] E;
     matrix[R, T] E_new;
-    //  matrix[T, 1] E[R];
-    // matrix[T, 1] E_new[R];
     vector[K + 1] lp;
-    // matrix[K + 1, T] lp;
-   // vector[50] log_lik;
   
     for (i in 1:R) {
     vector[K - max_y[i] + 1] ll;
@@ -132,7 +116,9 @@ generated quantities {
      
   for (i in 1:R) {
      N[i] = poisson_log_rng(log_lambda[i]);
-     p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
+     for(t in 1:T) {
+       p[i, t] = inv_logit(logit_p[i, t]);
+     }
   }
   
   // Bayesian p-value fit
@@ -141,26 +127,17 @@ generated quantities {
     // N = 0;
     for (i in 1:1) {
       for(j in 1:T) {
-      E[i, j] = 0;
-    E_new[i, j] = 0;
+        E[i, j] = 0;
+        E_new[i, j] = 0;
       }
     }
+    
     for (i in 2:R) {
       E[i] = E[i - 1];
       E_new[i] = E_new[i - 1];
     }
 
     for (i in 1:R) {
-      // for (j in 1:T)
-        // p[i, j] = inv_logit(logit_p[i, j]);
-// 
-//         for (n in 0:(max_y[i] - 1))
-//           lp[n + 1] = negative_infinity();
-//         for (n in max_y[i]:K) {
-//           lp[n + 1] = poisson_log_lpmf(n | log_lambda[i])
-//             + binomial_lpmf(y[i, 1:T] | n, p[i, 1:T]);
-//         }
-    
       for (j in 1:T) {
       // Assess model fit using Chi-squared discrepancy
       // Compute fit statistic E for observed data
