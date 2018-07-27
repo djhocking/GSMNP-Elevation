@@ -142,16 +142,18 @@ library("loo")
 # Extract pointwise log-likelihood and compute LOO
 log_lik_2 <- extract_log_lik(site_od_elev_pjor, parameter_name = "log_lik", merge_chains = FALSE)
 
-# removeal all -inf
+# remove all -inf
 
-# as of loo v2.0.0 we can optionally provide relative effective sample sizes
-# when calling loo, which allows for better estimates of the PSIS effective
-# sample sizes and Monte Carlo error
+# loo
 r_eff <- relative_eff(exp(log_lik_2)) 
-loo_2 <- loo(log_lik_2, r_eff = r_eff, cores = nc)
-print(loo_2)
+loo_od_elev <- loo(log_lik_2, r_eff = r_eff, cores = nc)
+print(loo_od_elev)
 
-psis_od_elev <- psis(log_lik_2)
+psis_od_elev <- psis(log_lik_2, r_eff = r_eff, cores = nc)
+print(psis_od_elev)
+
+loo_od_elev <- list(loo = loo_od_elev, psis = psis_od_elev, r_eff = r_eff)
+saveRDS(loo_od_elev, file = "Results/Stan/site_od_elev_pjor_loo.Rds")
 
 # Bayesian p-value check
 plot(site_od_elev_pjor, par = c("fit", "fit_new"))
