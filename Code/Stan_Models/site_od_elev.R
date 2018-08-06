@@ -7,11 +7,11 @@ library(rstan)
 library(dplyr)
 
 # Settings
-testing <- FALSE # settings to run quickly when testing model changes = TRUE
+testing <- TRUE # settings to run quickly when testing model changes = TRUE
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
-set.seed(123)
+# set.seed(123)
 
 ## Read data
 load("Data/Processed/jags_prep.RData")
@@ -52,7 +52,7 @@ n.sites <- length(unique(Data5$site_stan))
 params <- c("totalN", 
             "alpha0", 
             "alpha1", 
-            "alpha2",
+            # "alpha2",
             "alpha3",
             "beta0", 
             "beta1",
@@ -102,64 +102,70 @@ inits <- lapply(1:nc, function(i)
 
 ## Call Stan from R
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-site_od_pjor <- stan("Code/Stan_Models/site_od.stan",
-            data = list(y = PJOR5, 
-                        R = n.transects, 
-                        T = n.surveys, 
-                        nsites = n.sites,
-                        sites = Data5$site_stan,
-                        elev = elev5,
-                        elev2 = elev5^2,
-                        litter = litter5,
-                        gcover = gcover5,
-                        # gcover2 = gcover5^2,
-                        RH = RH5,
-                        temp = temp5,
-                        temp2 = temp5^2,
-                        K = K),
-            init = inits,
-            pars = params,
-            chains = nc, iter = ni, warmup = nb, thin = nt,
-            # seed = 1,
-            open_progress = FALSE, 
-            verbose = TRUE)
+site_od_elev_pjor <- stan("Code/Stan_Models/site_od_elev.stan",
+                     data = list(y = PJOR5, 
+                                 R = n.transects, 
+                                 T = n.surveys, 
+                                 nsites = n.sites,
+                                 sites = Data5$site_stan,
+                                 elev = elev5,
+                                 # elev2 = elev5^2,
+                                 litter = litter5,
+                                 gcover = gcover5,
+                                 # gcover2 = gcover5^2,
+                                 RH = RH5,
+                                 temp = temp5,
+                                 temp2 = temp5^2,
+                                 K = K),
+                     init = inits,
+                     pars = params,
+                     chains = nc, iter = ni, warmup = nb, thin = nt,
+                     # seed = 1,
+                     open_progress = FALSE, 
+                     verbose = TRUE)
 
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-saveRDS(site_od_pjor, file = "Results/Stan/site_od_pjor_hmc.Rds")
+saveRDS(site_od_elev_pjor, file = "Results/Stan/site_od_elev_pjor_hmc.Rds")
 
-print(site_od_pjor, digits = 3)
-plot(site_od_pjor, par = c("alpha0", "alpha1", "alpha2", "beta0", "beta1", "fit", "fit_new"))
-traceplot(site_od_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "beta0", "beta1", "beta2", "beta3", "beta4", "sd_eps", "sd_p"))
+print(site_od_elev_pjor, digits = 3)
+plot(site_od_elev_pjor, par = c("alpha0", "alpha1", "beta0", "beta1", "fit", "fit_new"))
+traceplot(site_od_elev_pjor, par = c("alpha0", "alpha1", "alpha3", "beta0", "beta1", "beta2", "beta3", "beta4", "sd_eps", "sd_p"))
 
-pairs(site_od_pjor, pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p"))
+pairs(site_od_elev_pjor, pars = c("alpha0", "alpha1", "beta0", "sd_eps", "sd_p"))
 
-print(site_od_pjor, par = "log_lik", digits = 2)
+# print(site_od_elev_pjor, par = "log_lik", digits = 2)
 
 library("rstanarm")
 library("bayesplot")
 library("loo")
 
 # Extract pointwise log-likelihood and compute LOO
-log_lik_1 <- extract_log_lik(site_od_pjor, parameter_name = "log_lik", merge_chains = FALSE)
+log_lik_2 <- extract_log_lik(site_od_elev_pjor, parameter_name = "log_lik", merge_chains = FALSE)
 
 # remove all -inf
 
 # loo
-r_eff <- relative_eff(exp(log_lik_1)) 
-loo_od <- loo(log_lik_1, r_eff = r_eff, cores = nc)
-print(loo_od)
+r_eff <- relative_eff(exp(log_lik_2)) 
+loo_od_elev <- loo(log_lik_2, r_eff = r_eff, cores = nc)
+print(loo_od_elev)
 
-psis_od <- psis(log_lik_1, r_eff = r_eff, cores = nc)
-print(psis_od)
+psis_od_elev <- psis(log_lik_2, r_eff = r_eff, cores = nc)
+print(psis_od_elev)
 
-loo_od <- list(loo = loo_od, psis = psis_od, r_eff = r_eff)
-saveRDS(loo_od, file = "Results/Stan/site_od_pjor_loo.Rds")
+loo_od_elev <- list(loo = loo_od_elev, psis = psis_od_elev, r_eff = r_eff)
+saveRDS(loo_od_elev, file = "Results/Stan/site_od_elev_pjor_loo.Rds")
 
 # Bayesian p-value check
-plot(site_od_pjor, par = c("fit", "fit_new"))
+plot(site_od_elev_pjor, par = c("fit", "fit_new"))
 
-foo <- as.data.frame(summary(site_od_pjor)$summary)
-foo$parameter <- rownames(summary(site_od_pjor)$summary)
+foo <- as.data.frame(summary(site_od_elev_pjor)$summary)
+foo$parameter <- rownames(summary(site_od_elev_pjor)$summary)
+
+loo::compare(loo_1, loo_2)
+
+# waic1 <- waic(log_lik_1)
+# waic2 <- waic(log_lik_2)
+# compare(waic1, waic2)
 
 library(stringr)
 y_new_sum <- dplyr::filter(foo, str_detect(parameter, "y_new"))

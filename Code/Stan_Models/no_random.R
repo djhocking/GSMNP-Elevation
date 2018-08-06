@@ -140,12 +140,16 @@ log_lik_1 <- extract_log_lik(no_random_pjor, parameter_name = "log_lik", merge_c
 
 # removeal all -inf
 
-# as of loo v2.0.0 we can optionally provide relative effective sample sizes
-# when calling loo, which allows for better estimates of the PSIS effective
-# sample sizes and Monte Carlo error
+# loo
 r_eff <- relative_eff(exp(log_lik_1)) 
-loo_1 <- loo(log_lik_1, r_eff = r_eff, cores = nc)
-print(loo_1)
+loo_no_random <- loo(log_lik_1, r_eff = r_eff, cores = nc)
+print(loo_no_random)
+
+psis_no_random <- psis(log_lik_1, r_eff = r_eff, cores = nc)
+print(psis_no_random)
+
+loo_no_random <- list(loo = loo_no_random, psis = psis_no_random, r_eff = r_eff)
+saveRDS(loo_no_random, file = "Results/Stan/no_random_pjor_loo.Rds")
 
 # Bayesian p-value check
 plot(no_random_pjor, par = c("fit", "fit_new"))

@@ -8,6 +8,8 @@ data {
   vector[R] elev;          // Covariate
   vector[R] elev2;          // Covariate
   vector[R] litter;          // Covariate
+  vector[R] stream;          // Covariate
+  vector[R] stream2;          // Covariate
   matrix[R, T] RH;      // Covariate
   matrix[R, T] temp;      // Covariate
   matrix[R, T] temp2;      // Covariate
@@ -35,12 +37,14 @@ parameters {
   real alpha1;
   real alpha2;
   real alpha3;
+  real alpha4;
+  real alpha5;
   real beta0;
   real beta1;
   real beta2;
   real beta3;
   real beta4;
-  // real beta5;
+  real beta5;
   
   vector[nsites] eps;            // Random site effects
   real<lower=0,upper=10> sd_eps;
@@ -53,9 +57,9 @@ transformed parameters {
   matrix[R, T] logit_p; // Logit detection probability
 
   for (i in 1:R) {
-  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha2 * elev2[i] + alpha3 * litter[i] + eps[sites[i]];
+  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha2 * elev2[i] + alpha3 * litter[i] + alpha4 * stream[i] + alpha5 * stream2[i] + eps[sites[i]];
   for (t in 1:T) {
-  logit_p[i,t] = beta0 + beta1 * RH[i,t] + beta2 * temp[i,t] + beta3 * temp2[i,t] + beta4 * gcover[i] + delta[i, t];
+  logit_p[i,t] = beta0 + beta1 * RH[i,t] + beta2 * temp[i,t] + beta3 * temp2[i,t] + beta4 * gcover[i] + beta5 * gcover2[i] + delta[i, t];
   }
 }
 }
