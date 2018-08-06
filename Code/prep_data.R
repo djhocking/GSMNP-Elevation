@@ -474,6 +474,8 @@ write.table(min.max.elev, file = "Results/min-max-elev.csv", sep = ",")
 
 #------------ save everything for use in models -----------
 
+if(!dir.exists("Data/Processed")) dir.create("Data/Processed", recursive = TRUE)
+
 save(Data, df, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJORmin, DWRI, DWRImin, EWIL, EWILmin,  file = "Data/Processed/jags_prep.RData")
 
 save.image("Data/Processed/jags_prep_image.RData")

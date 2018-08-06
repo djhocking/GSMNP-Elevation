@@ -1,13 +1,17 @@
-## 12. Metapopulation modeling of abundance using
-##     hierarchical Poisson regression: binomial mixture models
-## 12.2. Generation and analysis of simulated data
-## 12.2.2. Introducing covariates
+## Random site effects on abundance and random binomial overdispersion with random transect-visit effect
 
+# Based on code by Hiroki ITÔ translated from chapter 12 of Kery and Schuab Bayesian Population Analysis 
+
+# Load Libraries
 library(rstan)
 library(dplyr)
+
+# Settings
+testing <- FALSE # settings to run quickly when testing model changes = TRUE
+
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
-# set.seed(123)
+set.seed(123)
 
 ## Read data
 load("Data/Processed/jags_prep.RData")
@@ -57,11 +61,16 @@ params <- c("totalN",
             "beta4",
             "beta5",
             "sd_eps", 
-            "sd_p", 
-            "N")
+            "sd_p",
+            "N",
+            "p",
+            "log_lik",
+            # "lp",
+            "y_new",
+            "fit",
+            "fit_new")
 
 ## MCMC settings
-testing <- TRUE
 if(testing) {
   nb = 400
   ni = 600
@@ -91,41 +100,56 @@ inits <- lapply(1:nc, function(i)
        sd_eps = runif(1, 0, 1)))
 
 ## Call Stan from R
-out <- stan("Code/Stan_Models/site_od.stan",
-            data = list(y = DWRI5, 
-                        R = n.transects, 
-                        T = n.surveys, 
-                        elev = elev5,
-                        litter = litter5,
-                        gcover = gcover5,
-                        RH = RH5,
-                        temp = temp5,
-                        nsites = n.sites,
-                        sites = Data5$site_stan,
-                        K = K),
-            init = inits, pars = params,
-            chains = nc, iter = ni, warmup = nb, thin = nt,
-            seed = 1,
-            open_progress = FALSE, verbose = TRUE)
+if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
+site_od_dwri <- stan("Code/Stan_Models/site_od.stan",
+                     data = list(y = DWRI5, 
+                                 R = n.transects, 
+                                 T = n.surveys, 
+                                 nsites = n.sites,
+                                 sites = Data5$site_stan,
+                                 elev = elev5,
+                                 elev2 = elev5^2,
+                                 litter = litter5,
+                                 gcover = gcover5,
+                                 gcover2 = gcover5^2,
+                                 RH = RH5,
+                                 temp = temp5,
+                                 temp2 = temp5^2,
+                                 K = K),
+                     init = inits,
+                     pars = params,
+                     chains = nc, iter = ni, warmup = nb, thin = nt,
+                     # seed = 1,
+                     open_progress = FALSE, 
+                     verbose = TRUE)
 
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-saveRDS(out, file = "Results/Stan/site_od_dwri_hmc.Rds")
+saveRDS(site_od_dwri, file = "Results/Stan/site_od_dwri_hmc.Rds")
 
-print(out, digits = 3)
-plot(out, par = c("alpha0", "alpha1", "alpha2", "beta0", "beta1", "sd_eps"))
-traceplot(out, par = c("alpha0", "alpha1", "alpha2", "alpha3", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "sd_eps", "sd_p"))
+print(site_od_dwri, digits = 3)
+plot(site_od_dwri, par = c("alpha0", "alpha1", "alpha2", "beta0", "beta1", "fit", "fit_new"))
+traceplot(site_od_dwri, par = c("alpha0", "alpha1", "alpha2", "alpha3", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "sd_eps", "sd_p"))
+
+print(site_od_dwri, par = "lp", digits = 2)
 
 library("rstanarm")
 library("bayesplot")
 library("loo")
 
 # Extract pointwise log-likelihood and compute LOO
-log_lik_1 <- extract_log_lik(fit_1, merge_chains = FALSE)
+log_lik_1 <- extract_log_lik(site_od_dwri, parameter_name = "log_lik", merge_chains = FALSE)
+
+# removeal all -inf
 
 # as of loo v2.0.0 we can optionally provide relative effective sample sizes
 # when calling loo, which allows for better estimates of the PSIS effective
 # sample sizes and Monte Carlo error
 r_eff <- relative_eff(exp(log_lik_1)) 
-
-loo_1 <- loo(log_lik_1, r_eff = r_eff, cores = 2)
+loo_1 <- loo(log_lik_1, r_eff = r_eff, cores = nc)
 print(loo_1)
+
+psis_od <- psis(log_lik_1)
+
+# Bayesian p-value check
+plot(site_od_dwri, par = c("fit", "fit_new"))
+
