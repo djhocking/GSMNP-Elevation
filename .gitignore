@@ -12,3 +12,7 @@ Results/Stan/
 *.rds
 *.Rds
 *.RDS
+site_od_dwri.rds
+Analysis_Original/
+Results/JAGS/
+Results/Stan/
