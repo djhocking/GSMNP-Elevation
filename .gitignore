@@ -14,3 +14,5 @@ Results/Stan/
 *.RDS
 site_od_dwri.rds
 Analysis_Original/
+Results/JAGS/
+Results/Stan/
