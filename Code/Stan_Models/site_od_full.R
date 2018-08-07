@@ -192,6 +192,14 @@ saveRDS(loo_od, file = "Results/Stan/site_od_full_pjor_loo.Rds")
 # Bayesian p-value check
 plot(site_od_full_pjor, par = c("fit", "fit_new"))
 
+pairs(site_od_full_pjor, pars = c("fit", "fit_new"))
+
+fit <- c(site_od_full_pjor@sim$samples[[1]]$fit[(nb+1):ni], site_od_full_pjor@sim$samples[[2]]$fit[(nb+1):ni], site_od_full_pjor@sim$samples[[3]]$fit[(nb+1):ni]) # maybe do with lapply?
+
+fit_new <- c(site_od_full_pjor@sim$samples[[1]]$fit_new[(nb+1):ni], site_od_full_pjor@sim$samples[[2]]$fit_new[(nb+1):ni], site_od_full_pjor@sim$samples[[3]]$fit_new[(nb+1):ni]) # maybe do with lapply?
+
+mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS output
+
 foo <- as.data.frame(summary(site_od_full_pjor)$summary)
 foo$parameter <- rownames(summary(site_od_full_pjor)$summary)
 
