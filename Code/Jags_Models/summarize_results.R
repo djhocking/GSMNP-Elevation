@@ -48,6 +48,31 @@ colnames(N.pjor) <- c("CI_2.5", "Median", "CI_97.5")
 N.pjor
 cbind(PJORmin, N.pjor)
 
+# combine chains into one for summarizing and plotting
+fit_pjor <- as.data.frame(do.call(rbind, pjor_od))
+
+hist(fit$alpha.lam)
+
+# Effect of Beta1 - elevation
+
+elevation <- seq(450, 2025, by = 1)
+elevation_s <- (elevation - mean(Data$elev)) / sd(Data$elev)
+
+N_hat_pjor <- matrix(NA, length(fit_pjor$beta1.lam), length(elevation_s))
+for(i in 1:length(fit_pjor$beta1.lam)) {
+  N_hat_pjor[i, ] <- exp(fit_pjor$alpha.lam[i] + fit_pjor$beta1.lam[i] * elevation_s)
+}
+
+foo <- t(apply(as.matrix(N_hat_pjor), 2, FUN = stats::quantile, probs = c(0.025, 0.5, 0.975)))
+
+bar <- data.frame(elevation, foo)
+colnames(bar) <- c("Elevation", "LCRI", "Median", "UCRI")
+
+sna <- data.frame(Elevation = Data$elev, N.pjor) # not sure if these line up the elevations correctly
+
+ggplot(bar, aes(Elevation, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + theme_bw() # + geom_point(data = sna, aes(Elevation, Median))
+
+
 ##### DWRI #####
 # Check fit
 for(i in 1:3) bayesP.dwri4 <- mean(dwri_od[, "fit.new",][[i]] > dwri_od[, "fit",][[i]]) # 0.454 excellent
@@ -71,7 +96,7 @@ Dwri.summary <- data.frame(Dwri.variables, Means.dwri, SDs.dwri, Quants.dwri["2.
 
 colnames(Dwri.summary) <- c("Variable", "Mean", "SD", "2.5%", "Median", "97.5%")
 
-write.table(Dwri.summary, file = "Results/JAGS/Dwri_Summary.csv", sep = ",", col.names = NA, row.names = TRUE)
+write.table(Dwri.summary, file = "Results/JAGS/Dwri_summary.csv", sep = ",", col.names = NA, row.names = TRUE)
 
 N.dwri <- matrix(NA, 195, 3)
 for(i in 1:195){
@@ -106,7 +131,7 @@ ewil.summary <- data.frame(ewil.variables, Means.ewil, SDs.ewil, Quants.ewil["2.
 
 colnames(ewil.summary) <- c("Variable", "Mean", "SD", "2.5%", "Median", "97.5%")
 
-write.table(ewil.summary, file = "Results/JAGS/ewil_Summary.csv", sep = ",", col.names = NA, row.names = TRUE)
+write.table(ewil.summary, file = "Results/JAGS/ewil_summary.csv", sep = ",", col.names = NA, row.names = TRUE)
 
 N.ewil <- matrix(NA, 195, 3)
 for(i in 1:195){
