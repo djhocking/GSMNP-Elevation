@@ -163,12 +163,88 @@ stopCluster(cl)
 
 # Results
 pjor_od <- mcmc.list(out)
-plot(pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
+plot(pjor_od[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new")]) # 
 par(mfrow = c(1,1))
-summary(pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+summary(pjor_od[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")])
 
 save(pjor_od, file = "Results/JAGS/pjor_mcmc_out.RData")
 saveRDS(pjor_od, file = "Results/JAGS/pjor_mcmc_out.rds")
+
+####### PJOR Elev^2 ######
+
+Nst <- apply(PJOR, 1, function(x) max(x, na.rm = TRUE)) + 1
+inits <- function(){
+  list(N = Nst,
+       alpha.lam = rnorm(1, 0.5, 1),
+       beta1.lam = rnorm(1, 2, 1),
+       beta2.lam = rnorm(1, -2, 1),
+       beta3.lam = rnorm(1, 0, 1),
+       beta6.lam = rnorm(1, 0, 1),
+       beta8.lam = rnorm(1, 0, 1),
+       beta9.lam = rnorm(1, 0, 1),
+       beta11.lam = rnorm(1, 0, 1),
+       beta13.lam = rnorm(1, 0, 1),
+       eps.lam = rnorm(48, 0, 1),
+       alpha.p = rnorm(1, -1, 1),
+       beta1.p = rnorm(1, 0, 1),
+       beta2.p = rnorm(1, 0, 1),
+       beta3.p = rnorm(1, 0.5, 1),
+       beta4.p = rnorm(1, 0.5, 1),
+       beta5.p = rnorm(1, 0.5, 1),
+       beta10.p = rnorm(1, 0.5, 1),
+       sigma.site = runif(1, 0, 1),
+       sigma.p = runif(1, 0, 1))#,
+  #delta.p = rnorm(195*6, 0, 1))
+}
+
+params <- c( "alpha.lam", 
+             "beta1.lam", 
+             "beta2.lam",
+             "beta3.lam",
+             "beta6.lam",
+             "beta8.lam",
+             "beta9.lam",
+             "beta11.lam",
+             "beta13.lam",
+             "alpha.p", 
+             "beta1.p",
+             "beta2.p",
+             "beta3.p",
+             "beta4.p",
+             "beta5.p",
+             "beta10.p",
+             "eps.lam",
+             "delta.p",
+             "sigma.site",
+             "sigma.p",
+             "N",
+             "p",
+             "fit",
+             "fit.new")
+
+cl <- makeCluster(4)                       # Request # cores
+clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
+clusterSetRNGStream(cl = cl, 12590)
+
+system.time({ # no status bar (% complete) when run in parallel
+  out <- clusterEvalQ(cl, {
+    library(rjags)
+    jm <- jags.model("Code/Jags_Models/final_od.txt", pjor.od.data, inits, n.adapt=nb, n.chains=1) # Compile model and run burnin
+    out <- coda.samples(jm, params, n.iter=ni, thin=nt) # Sample from posterior distribution
+    return(as.mcmc(out))
+  })
+}) # 
+
+stopCluster(cl)
+
+# Results
+pjor_od2 <- mcmc.list(out)
+plot(pjor_od2[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new")]) # 
+par(mfrow = c(1,1))
+summary(pjor_od2[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")])
+
+save(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.RData")
+saveRDS(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.rds")
 
 ##### DWRI #####
 
@@ -246,6 +322,83 @@ summary(dwri_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.la
 save(dwri_od, file = "Results/JAGS/dwri_mcmc_out.RData")
 saveRDS(dwri_od, file = "Results/JAGS/dwri_mcmc_out.rds")
 
+##### DWRI Elev^2 #####
+
+Nst <- apply(DWRI, 1, function(x) max(x, na.rm = TRUE)) + 1
+inits <- function(){
+  list(N = Nst,
+       alpha.lam = rnorm(1, 0.5, 1),
+       beta1.lam = rnorm(1, 2, 1),
+       beta2.lam = rnorm(1, -2, 1),
+       beta3.lam = rnorm(1, 0, 1),
+       beta6.lam = rnorm(1, 0, 1),
+       beta8.lam = rnorm(1, 0, 1),
+       beta9.lam = rnorm(1, 0, 1),
+       beta11.lam = rnorm(1, 0, 1),
+       beta13.lam = rnorm(1, 0, 1),
+       eps.lam = rnorm(48, 0, 1),
+       alpha.p = rnorm(1, -1, 1),
+       beta1.p = rnorm(1, 0, 1),
+       beta2.p = rnorm(1, 0, 1),
+       beta3.p = rnorm(1, 0.5, 1),
+       beta4.p = rnorm(1, 0.5, 1),
+       beta5.p = rnorm(1, 0.5, 1),
+       beta10.p = rnorm(1, 0.5, 1),
+       sigma.site = runif(1, 0, 1),
+       sigma.p = runif(1, 0, 1))#,
+  #delta.p = rnorm(195*6, 0, 1))
+}
+
+params <- c( "alpha.lam", 
+             "beta1.lam", 
+             "beta2.lam",
+             "beta3.lam",
+             "beta6.lam",
+             "beta8.lam",
+             "beta9.lam",
+             "beta11.lam",
+             "beta13.lam",
+             "alpha.p", 
+             "beta1.p",
+             "beta2.p",
+             "beta3.p",
+             "beta4.p",
+             "beta5.p",
+             "beta10.p",
+             "eps.lam",
+             "delta.p",
+             "sigma.site",
+             "sigma.p",
+             "N",
+             "p",
+             "fit",
+             "fit.new")
+
+cl <- makeCluster(4)                       # Request # cores
+clusterExport(cl, c("dwri.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
+clusterSetRNGStream(cl = cl, 12590)
+
+system.time({ # no status bar (% complete) when run in parallel
+  out <- clusterEvalQ(cl, {
+    library(rjags)
+    jm <- jags.model("Code/Jags_Models/final_od.txt", dwri.od.data, inits, n.adapt=nb, n.chains=1) # Compile model and run burnin
+    out <- coda.samples(jm, params, n.iter=ni, thin=nt) # Sample from posterior distribution
+    return(as.mcmc(out))
+  })
+}) # 
+
+stopCluster(cl)
+
+# Results
+dwri_od2 <- mcmc.list(out)
+plot(dwri_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
+par(mfrow = c(1,1))
+summary(dwri_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+
+save(dwri_od2, file = "Results/JAGS/dwri2_mcmc_out.RData")
+saveRDS(dwri_od2, file = "Results/JAGS/dwri2_mcmc_out.rds")
+
+
 ##### EWIL #####
 
 Nst <- apply(EWIL, 1, function(x) max(x, na.rm = TRUE)) + 1
@@ -322,11 +475,19 @@ summary(ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.la
 save(ewil_od, file = "Results/JAGS/ewil_mcmc_out.RData")
 saveRDS(ewil_od, file = "Results/JAGS/ewil_mcmc_out.rds")
 
+rm(out)
+gc()
 
 
 
 
 
 
-save(pjor_od, file = "Results/JAGS/pjor_mcmc_out.RData")
-saveRDS(pjor_od, file = "Results/JAGS/pjor_mcmc_out.rds")
+save(pjor_od, file = "/Users/djhocking/OneDrive\ -\ Frostburg\ State\ University/Elevation_2012_Results/pjor_mcmc_out.RData")
+saveRDS(pjor_od, file = "/Users/djhocking/OneDrive\ -\ Frostburg\ State\ University/Elevation_2012_Results/pjor_mcmc_out.rds")
+
+save(dwri_od, file = "/Users/djhocking/OneDrive\ -\ Frostburg\ State\ University/Elevation_2012_Results/dwri_mcmc_out.RData")
+saveRDS(dwri_od, file = "/Users/djhocking/OneDrive\ -\ Frostburg\ State\ University/Elevation_2012_Results/dwri_mcmc_out.rds")
+
+save(ewil_od, file = "/Users/djhocking/OneDrive\ -\ Frostburg\ State\ University/Elevation_2012_Results/ewil_mcmc_out.RData")
+saveRDS(ewil_od, file = "/Users/djhocking/OneDrive\ -\ Frostburg\ State\ University/Elevation_2012_Results/ewil_mcmc_out.rds")

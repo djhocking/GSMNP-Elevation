@@ -7,7 +7,7 @@ library(rstan)
 library(dplyr)
 
 # Settings
-testing <- TRUE # settings to run quickly when testing model changes = TRUE
+testing <- FALSE # settings to run quickly when testing model changes = TRUE
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -79,11 +79,11 @@ if(testing) {
   nc <- 3
   K = 100
 } else {
-  nb = 5000
+  nb = 7500
   ni = 10000
   nt = 1
   nc <- 4
-  K = 300
+  K = 400
 }
 
 ## Initial values

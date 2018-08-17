@@ -7,7 +7,7 @@ library(rstan)
 library(dplyr)
 
 # Settings
-testing <- TRUE # settings to run quickly when testing model changes = TRUE
+testing <- FALSE # settings to run quickly when testing model changes = TRUE
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -252,6 +252,7 @@ library(stringr)
 y_new_sum <- dplyr::filter(foo, str_detect(parameter, "y_new"))
 eval_sum <- dplyr::filter(foo, str_detect(parameter, "eval"))
 
+par(mfrow = c(1,1))
 plot(PJOR5, y_new_sum$mean)
 abline(a = 0, b = 1)
 

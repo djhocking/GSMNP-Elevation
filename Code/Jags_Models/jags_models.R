@@ -4126,3 +4126,153 @@ plot(as.matrix(pjor_occ[, "fit",]), as.matrix(pjor_occ[, "fit.new",])) #
 abline(0, 1, col = 'red')
 
 print(gelman.diag(x=pjor_occ[,c("alpha.lam", "beta1.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]), dig=3) # 
+
+
+
+
+#----------Full model site abund Overdispersion in detection------------
+# random effect of site on abundance and random effect of transect*observation in detection
+# Define model
+sink("Code/Jags_Models/final_od.txt")
+cat("
+    model{
+    # Priors
+    alpha.lam ~ dnorm(0, 0.01)
+    beta1.lam ~ dnorm(0, 0.01)
+    beta2.lam ~ dnorm(0, 0.01)
+    beta6.lam ~ dnorm(0, 0.01)
+    beta8.lam ~ dnorm(0, 0.01)
+    beta9.lam ~ dnorm(0, 0.01)
+    beta11.lam ~ dnorm(0, 0.01)
+    beta13.lam ~ dnorm(0, 0.01)
+    
+    for(i in 1:n.sites){
+    eps.lam[i] ~ dnorm(alpha.lam, tau.site)
+    }
+    
+    sigma.site ~ dunif(0, 5)
+    tau.site <- 1/(sigma.site*sigma.site)
+    
+    alpha.p ~ dnorm(0, 0.01)
+    beta1.p ~ dnorm(0, 0.01)
+    beta2.p ~ dnorm(0, 0.01)
+    beta3.p ~ dnorm(0, 0.01)
+    beta4.p ~ dnorm(0, 0.01)
+    beta5.p ~ dnorm(0, 0.01)
+    beta10.p ~ dnorm(0, 0.01)
+    
+    sigma.p ~ dunif(0, 5)
+    tau.p <- pow(sigma.p, -2)
+    
+    for(i in 1:n.transects){
+    for(j in 1:n.surveys){
+    delta.p[i,j] ~ dnorm(alpha.p, tau.p)
+    }
+    }
+    
+    # Likelihood
+    for(i in 1:n.transects){
+    N[i] ~ dpois(lambda[i])
+    
+    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta6.lam*tpi[i] + beta8.lam*twi[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta13.lam*stream[i] + eps.lam[site[i]]
+    
+    for(j in 1:n.surveys){
+    C[i, j] ~ dbin(p[i, j], N[i])
+    p[i,j] <- 1 / (1 + exp(-lp.lim[i,j]))    
+    lp.lim[i,j] <- min(999, max(-999, lp[i,j])) # Help stabilize the logit
+    
+    lp[i, j] <-  beta1.p*Temp.s[i,j] + beta2.p*Temp.s2[i,j] + beta3.p*Precip.s[i,j] + beta4.p*gcover[i] + beta5.p*gcover2[i] + beta10.p*RH.s[i,j] + delta.p[i,j]
+    
+    # Assess model fit using Chi-squared discrepancy
+    # Compute fit statistic for observed data
+    eval[i,j] <- p[i,j] * N[i]
+    E[i,j] <- pow((C[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
+    # Generate replicate data and compute fit stats for them
+    y.new[i,j] ~ dbin(p[i,j], N[i])
+    E.new[i,j] <- pow((y.new[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5) 
+    
+    diff.cy[i,j] <- C[i,j] - y.new[i,j]
+    }
+    }
+    
+    # Derived quantities
+    totalN<- sum(N[1:n.transects])
+    fit <- sum(E[1:n.transects, 1:n.surveys])
+    fit.new <- sum(E.new[1:n.transects, 1:n.surveys])
+    
+    }
+    ", fill = TRUE)
+sink()
+
+
+#----------Full model site abund Overdispersion in detection------------
+# random effect of site on abundance and random effect of transect*observation in detection
+# Define model
+sink("Code/Jags_Models/final_elev_od.txt")
+cat("
+    model{
+    # Priors
+    alpha.lam ~ dnorm(0, 0.01)
+    beta1.lam ~ dnorm(0, 0.01)
+    beta6.lam ~ dnorm(0, 0.01)
+    beta8.lam ~ dnorm(0, 0.01)
+    beta9.lam ~ dnorm(0, 0.01)
+    beta11.lam ~ dnorm(0, 0.01)
+    
+    for(i in 1:n.sites){
+    eps.lam[i] ~ dnorm(alpha.lam, tau.site)
+    }
+    
+    sigma.site ~ dunif(0, 5)
+    tau.site <- 1/(sigma.site*sigma.site)
+    
+    alpha.p ~ dnorm(0, 0.01)
+    beta1.p ~ dnorm(0, 0.01)
+    beta2.p ~ dnorm(0, 0.01)
+    beta3.p ~ dnorm(0, 0.01)
+    beta4.p ~ dnorm(0, 0.01)
+    beta5.p ~ dnorm(0, 0.01)
+    beta10.p ~ dnorm(0, 0.01)
+    
+    sigma.p ~ dunif(0, 5)
+    tau.p <- pow(sigma.p, -2)
+    
+    for(i in 1:n.transects){
+    for(j in 1:n.surveys){
+    delta.p[i,j] ~ dnorm(alpha.p, tau.p)
+    }
+    }
+    
+    # Likelihood
+    for(i in 1:n.transects){
+    N[i] ~ dpois(lambda[i])
+    
+    log(lambda[i]) <- beta1.lam*elev[i] + beta6.lam*tpi[i] + beta8.lam*twi[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + eps.lam[site[i]]
+    
+    for(j in 1:n.surveys){
+    C[i, j] ~ dbin(p[i, j], N[i])
+    p[i,j] <- 1 / (1 + exp(-lp.lim[i,j]))    
+    lp.lim[i,j] <- min(999, max(-999, lp[i,j])) # Help stabilize the logit
+    
+    lp[i, j] <-  beta1.p*Temp.s[i,j] + beta2.p*Temp.s2[i,j] + beta3.p*Precip.s[i,j] + beta4.p*gcover[i] + beta5.p*gcover2[i] + beta10.p*RH.s[i,j] + delta.p[i,j]
+    
+    # Assess model fit using Chi-squared discrepancy
+    # Compute fit statistic for observed data
+    eval[i,j] <- p[i,j] * N[i]
+    E[i,j] <- pow((C[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
+    # Generate replicate data and compute fit stats for them
+    y.new[i,j] ~ dbin(p[i,j], N[i])
+    E.new[i,j] <- pow((y.new[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5) 
+    
+    diff.cy[i,j] <- C[i,j] - y.new[i,j]
+    }
+    }
+    
+    # Derived quantities
+    totalN<- sum(N[1:n.transects])
+    fit <- sum(E[1:n.transects, 1:n.surveys])
+    fit.new <- sum(E.new[1:n.transects, 1:n.surveys])
+    
+    }
+    ", fill = TRUE)
+sink()
