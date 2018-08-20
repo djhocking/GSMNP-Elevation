@@ -4603,7 +4603,7 @@ cat("
     for(i in 1:n.transects){
     N[i] ~ dpois(lambda[i])
     
-    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta6.lam*stream[i] + beta13.lam*stream[i]*elev[i] + eps.lam[site[i]]
+    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta6.lam*stream[i] + beta8.lam*stream[i]*elev[i] + eps.lam[site[i]]
     
     for(j in 1:n.surveys){
     C[i, j] ~ dbin(p[i, j], N[i])
@@ -4677,7 +4677,7 @@ cat("
     for(i in 1:n.transects){
     N[i] ~ dpois(lambda[i])
     
-    log(lambda[i]) <- beta1.lam*elev[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta6.lam*stream[i] + beta13.lam*stream[i]*elev[i] + eps.lam[site[i]]
+    log(lambda[i]) <- beta1.lam*elev[i] + beta6.lam*stream[i] + beta8.lam*streamelev[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + eps.lam[site[i]]
     
     for(j in 1:n.surveys){
     C[i, j] ~ dbin(p[i, j], N[i])
