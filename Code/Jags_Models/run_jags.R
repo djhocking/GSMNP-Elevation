@@ -7,6 +7,8 @@ load("Data/Processed/jags_prep.RData")
 
 tpi <- (Data$tpi_100 - mean(Data$tpi_100))/sd(Data$tpi_100)
 
+stream <- (Stream$strm_dist - mean(Stream$strm_dist)) / sd(Stream$strm_dist)
+
 testing <- FALSE
 if(testing) {
   nb = 5000
@@ -36,6 +38,7 @@ pjor.od.data <- list(C = as.matrix(PJOR[, 1:6]),
                      gcover2 = gcover*gcover,
                      litterdepth = litterdepth,
                      stream = stream,
+                     streamelev = stream*elev,
                      site = as.numeric(site),
                      Temp.s = as.matrix(Temp.s[ ,1:6]),
                      Temp.s2 = Temp.s*Temp.s,
@@ -61,6 +64,7 @@ dwri.od.data <- list(C = as.matrix(DWRI[, 1:6]),
                      gcover2 = gcover*gcover,
                      litterdepth = litterdepth,
                      stream = stream,
+                     streamelev = stream*elev,
                      site = as.numeric(site),
                      Temp.s = as.matrix(Temp.s[ ,1:6]),
                      Temp.s2 = Temp.s*Temp.s,
@@ -76,6 +80,7 @@ ewil.od.data <- list(C = as.matrix(EWIL[, 1:6]),
                      elev2 = elev*elev, 
                      slope = slope,
                      slope2 = slope*slope, 
+                     streamelev = stream*elev,
                      aspectN = aspectN,
                      aspectE = aspectE,
                      twi = twi,
@@ -168,7 +173,7 @@ par(mfrow = c(1,1))
 summary(pjor_od[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")])
 
 save(pjor_od, file = "Results/JAGS/pjor_mcmc_out.RData")
-saveRDS(pjor_od, file = "Results/JAGS/pjor_mcmc_out.rds")
+# saveRDS(pjor_od, file = "Results/JAGS/pjor_mcmc_out.rds")
 
 ####### PJOR Elev^2 ######
 
@@ -200,7 +205,7 @@ inits <- function(){
 params <- c( "alpha.lam", 
              "beta1.lam", 
              "beta2.lam",
-             "beta3.lam",
+             # "beta3.lam",
              "beta6.lam",
              "beta8.lam",
              "beta9.lam",
@@ -244,7 +249,7 @@ par(mfrow = c(1,1))
 summary(pjor_od2[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")])
 
 save(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.RData")
-saveRDS(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.rds")
+# saveRDS(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.rds")
 
 ##### DWRI #####
 
@@ -320,7 +325,7 @@ par(mfrow = c(1,1))
 summary(dwri_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
 
 save(dwri_od, file = "Results/JAGS/dwri_mcmc_out.RData")
-saveRDS(dwri_od, file = "Results/JAGS/dwri_mcmc_out.rds")
+# saveRDS(dwri_od, file = "Results/JAGS/dwri_mcmc_out.rds")
 
 ##### DWRI Elev^2 #####
 
@@ -396,7 +401,7 @@ par(mfrow = c(1,1))
 summary(dwri_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
 
 save(dwri_od2, file = "Results/JAGS/dwri2_mcmc_out.RData")
-saveRDS(dwri_od2, file = "Results/JAGS/dwri2_mcmc_out.rds")
+# saveRDS(dwri_od2, file = "Results/JAGS/dwri2_mcmc_out.rds")
 
 
 ##### EWIL #####
@@ -473,7 +478,7 @@ par(mfrow = c(1,1))
 summary(ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
 
 save(ewil_od, file = "Results/JAGS/ewil_mcmc_out.RData")
-saveRDS(ewil_od, file = "Results/JAGS/ewil_mcmc_out.rds")
+# saveRDS(ewil_od, file = "Results/JAGS/ewil_mcmc_out.rds")
 
 rm(out)
 gc()

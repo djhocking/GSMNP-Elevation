@@ -2668,6 +2668,435 @@ max(g[,2], na.rm = TRUE) # max
 
 
 
+
+#----------Full model site abund Overdispersion in detection------------
+# random effect of site on abundance and random effect of transect*observation in detection
+# Define model
+sink("Code/Jags_Models/full_od.txt")
+cat("
+    model{
+    # Priors
+    alpha.lam ~ dnorm(0, 0.01)
+    beta1.lam ~ dnorm(0, 0.01)
+    beta2.lam ~ dnorm(0, 0.01)
+    beta3.lam ~ dnorm(0, 0.01)
+    beta4.lam ~ dnorm(0, 0.01)
+    beta5.lam ~ dnorm(0, 0.01)
+    beta6.lam ~ dnorm(0, 0.01)
+    beta7.lam ~ dnorm(0, 0.01)
+    beta8.lam ~ dnorm(0, 0.01)
+    beta9.lam ~ dnorm(0, 0.01)
+    beta10.lam ~ dnorm(0, 0.01)
+    beta11.lam ~ dnorm(0, 0.01)
+    beta12.lam ~ dnorm(0, 0.01)
+    beta13.lam ~ dnorm(0, 0.01)
+    
+    for(i in 1:n.sites){
+    eps.lam[i] ~ dnorm(alpha.lam, tau.site)
+    }
+    
+    sigma.site ~ dunif(0, 3)
+    tau.site <- 1/(sigma.site*sigma.site)
+    
+    alpha.p ~ dnorm(0, 0.01)
+    beta1.p ~ dnorm(0, 0.01)
+    beta2.p ~ dnorm(0, 0.01)
+    beta3.p ~ dnorm(0, 0.01)
+    beta4.p ~ dnorm(0, 0.01)
+    beta5.p ~ dnorm(0, 0.01)
+    beta10.p ~ dnorm(0, 0.01)
+    
+    sigma.p ~ dunif(0, 3)
+    tau.p <- pow(sigma.p, -2)
+    
+    for(i in 1:n.transects){
+    for(j in 1:n.surveys){
+    delta.p[i,j] ~ dnorm(alpha.p, tau.p)
+    }
+    }
+    
+    # Likelihood
+    for(i in 1:n.transects){
+    N[i] ~ dpois(lambda[i])
+    
+    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta3.lam*slope[i] + beta4.lam*aspectN[i] + beta5.lam*aspectE[i] + beta6.lam*tpi[i] + beta7.lam*trail[i] + beta8.lam*ltwi[i]+ beta9.lam*canopy[i] + beta10.lam*gcover[i] + beta11.lam*litterdepth[i] + beta12.lam*slope2[i] + beta13.lam*lstream[i] + eps.lam[site[i]]
+    
+    for(j in 1:n.surveys){
+    C[i, j] ~ dbin(p[i, j], N[i])
+    p[i,j] <- 1 / (1 + exp(-lp.lim[i,j]))    
+    lp.lim[i,j] <- min(999, max(-999, lp[i,j])) # Help stabilize the logit
+    
+    lp[i, j] <-  beta1.p*Temp.s[i,j] + beta2.p*Temp.s2[i,j] + beta3.p*Precip.s[i,j] + beta4.p*gcover[i] + beta5.p*gcover2[i] + beta10.p*RH.s[i,j] + delta.p[i,j]
+    
+    # Assess model fit using Chi-squared discrepancy
+    # Compute fit statistic for observed data
+    eval[i,j] <- p[i,j] * N[i]
+    E[i,j] <- pow((C[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
+    # Generate replicate data and compute fit stats for them
+    y.new[i,j] ~ dbin(p[i,j], N[i])
+    E.new[i,j] <- pow((y.new[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5) 
+    
+    diff.cy[i,j] <- C[i,j] - y.new[i,j]
+    }
+    }
+    
+    # Derived quantities
+    totalN<- sum(N[1:n.transects])
+    fit <- sum(E[1:n.transects, 1:n.surveys])
+    fit.new <- sum(E.new[1:n.transects, 1:n.surveys])
+    
+    }
+    ", fill = TRUE)
+sink()
+
+Nst <- apply(PJOR, 1, function(x) max(x, na.rm = TRUE)) + 1
+inits <- function(){
+  list(N = Nst,
+       alpha.lam = rnorm(1, 0.5, 1),
+       beta1.lam = rnorm(1, 2, 1),
+       beta2.lam = rnorm(1, -2, 1),
+       beta3.lam = rnorm(1, 0, 1),
+       beta4.lam = rnorm(1, 0, 1),
+       beta5.lam = rnorm(1, 0, 1),
+       beta6.lam = rnorm(1, 0, 1),
+       beta7.lam = rnorm(1, 0, 1),
+       beta8.lam = rnorm(1, 0, 1),
+       beta9.lam = rnorm(1, 0, 1),
+       beta10.lam = rnorm(1, 0, 1),
+       beta11.lam = rnorm(1, 0, 1),
+       beta12.lam = rnorm(1, 0, 1),
+       beta13.lam = rnorm(1, 0, 1),
+       eps.lam = rnorm(48, 0, 1),
+       alpha.p = rnorm(1, -1, 1),
+       beta1.p = rnorm(1, 0, 1),
+       beta2.p = rnorm(1, 0, 1),
+       beta3.p = rnorm(1, 0.5, 1),
+       beta4.p = rnorm(1, 0.5, 1),
+       beta5.p = rnorm(1, 0.5, 1),
+       beta10.p = rnorm(1, 0.5, 1),
+       sigma.site = runif(1, 0, 1),
+       sigma.p = runif(1, 0, 1))#,
+  #delta.p = rnorm(195*6, 0, 1))
+}
+
+params <- c( "alpha.lam", 
+             "beta1.lam", 
+             "beta2.lam", 
+             "beta3.lam",
+             "beta4.lam",
+             "beta5.lam",
+             "beta6.lam",
+             "beta7.lam",
+             "beta8.lam",
+             "beta9.lam",
+             "beta10.lam",
+             "beta11.lam",
+             "beta12.lam",
+             "beta13.lam",
+             "alpha.p", 
+             "beta1.p",
+             "beta2.p",
+             "beta3.p",
+             "beta4.p",
+             "beta5.p",
+             "beta10.p",
+             "eps.lam",
+             "delta.p",
+             "sigma.site",
+             "sigma.p",
+             "N",
+             "p",
+             "fit",
+             "fit.new")
+
+pjor.od.data <- list(C = as.matrix(PJOR[, 1:6]), 
+                     n.transects = n.transects, 
+                     n.surveys = n.surveys,
+                     n.sites = length(site.inits), 
+                     elev = elev, 
+                     elev2 = elev2, 
+                     slope = slope,
+                     slope2 = slope2, 
+                     aspectN = aspectN,
+                     aspectE = aspectE,
+                     ltwi = ltwi,
+                     tpi = tpi,
+                     trail = trail,
+                     canopy = canopy,
+                     gcover = gcover,
+                     gcover2 = gcover2,
+                     litterdepth = litterdepth,
+                     lstream = lstream,
+                     site = as.numeric(site),
+                     Temp.s = as.matrix(Temp.s[ ,1:6]),
+                     Temp.s2 = Temp.s*Temp.s,
+                     RH.s = RH.s[ ,1:6],
+                     Precip.s = Precip.s[ ,1:6])
+
+library(parallel)
+library(rjags)
+
+cl <- makeCluster(4)                       # Request # cores
+clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
+clusterSetRNGStream(cl = cl, 1259)
+
+system.time({ # no status bar (% complete) when run in parallel
+  out <- clusterEvalQ(cl, {
+    library(rjags)
+    jm <- jags.model("Code/Jags_Models/full_od.txt", pjor.od.data, inits, n.adapt=nb, n.chains=1) # Compile model and run burnin
+    out <- coda.samples(jm, params, n.iter=ni, thin=nt) # Sample from posterior distribution
+    return(as.mcmc(out))
+  })
+}) # 
+
+# Results
+pjor_od<- mcmc.list(out)
+plot(pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
+par(mfrow = c(1,1))
+summary(pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+
+stopCluster(cl)
+
+plot(pjor_od[[1]][,c("fit.new")]) # problem chain
+plot(pjor_od[[2]][,c("fit.new")])
+plot(pjor_od[[3]][,c("fit.new")])
+plot(pjor_od[[4]][,c("fit.new")]) # 
+
+pjor_od <- mcmc.list(out[[2]], out[[3]], out[[3]])
+# Check fit
+for(i in 1:3) bayesP.pjor <- mean(pjor_od[, "fit.new",][[i]] > pjor_od[, "fit",][[i]]) # 0.332 good fit but problems with convergence of elev and elev^2
+print(bayesP.pjor, dig = 3)
+
+par(mfrow=c(1,1))
+plot(as.matrix(pjor_od[, "fit",]), as.matrix(pjor_od[, "fit.new",])) # imperfect but acceptable
+abline(0, 1, col = 'red')
+
+gelman.diag(x=pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+print(gelman.diag(x=pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]), dig=3) # no convergence of elev and elev^2
+g <- matrix(NA, nrow=nvar(pjor_od), ncol=2)
+for (v in 1:nvar(pjor_od)) {
+  g[v,] <- gelman.diag(pjor_od[,v])$psrf
+}
+max(g[,1], na.rm = TRUE) # a bit higher than multivariate 
+max(g[,2], na.rm = TRUE) # max
+
+
+
+
+
+#----------Full model only elev site abund Overdispersion in detection------------
+# random effect of site on abundance and random effect of transect*observation in detection
+# Define model
+sink("Code/Jags_Models/full_elev_od.txt")
+cat("
+    model{
+    # Priors
+    alpha.lam ~ dnorm(0, 0.01)
+    beta1.lam ~ dnorm(0, 0.01)#T(-3, 5)
+    beta2.lam ~ dnorm(0, 0.01)
+    beta3.lam ~ dnorm(0, 0.01)
+    beta4.lam ~ dnorm(0, 0.01)
+    beta5.lam ~ dnorm(0, 0.01)
+    beta6.lam ~ dnorm(0, 0.01)
+    beta7.lam ~ dnorm(0, 0.01)
+    beta8.lam ~ dnorm(0, 0.01)
+    beta9.lam ~ dnorm(0, 0.01)
+    beta10.lam ~ dnorm(0, 0.01)
+    beta11.lam ~ dnorm(0, 0.01)
+    beta12.lam ~ dnorm(0, 0.01)
+    beta13.lam ~ dnorm(0, 0.01)
+    
+    for(i in 1:n.sites){
+    eps.lam[i] ~ dnorm(alpha.lam, tau.site)
+    }
+    
+    sigma.site ~ dunif(0, 3)
+    tau.site <- 1/(sigma.site*sigma.site)
+    
+    alpha.p ~ dnorm(0, 0.01)
+    beta1.p ~ dnorm(0, 0.01)
+    beta2.p ~ dnorm(0, 0.01)
+    beta3.p ~ dnorm(0, 0.01)
+    beta4.p ~ dnorm(0, 0.01)
+    beta5.p ~ dnorm(0, 0.01)
+    beta10.p ~ dnorm(0, 0.01)
+    
+    sigma.p ~ dunif(0, 3)
+    tau.p <- pow(sigma.p, -2)
+    
+    for(i in 1:n.transects){
+    for(j in 1:n.surveys){
+    delta.p[i,j] ~ dnorm(alpha.p, tau.p)
+    }
+    }
+    
+    # Likelihood
+    for(i in 1:n.transects){
+    N[i] ~ dpois(lambda[i])
+    
+    log(lambda[i]) <- beta1.lam*elev[i] + beta3.lam*slope[i] + beta4.lam*aspectN[i] + beta5.lam*aspectE[i] + beta6.lam*tpi[i] + beta7.lam*trail[i] + beta8.lam*ltwi[i]+ beta9.lam*canopy[i] + beta10.lam*gcover[i] + beta11.lam*litterdepth[i] + beta12.lam*slope2[i] + beta13.lam*lstream[i] + eps.lam[site[i]]
+    
+    for(j in 1:n.surveys){
+    C[i, j] ~ dbin(p[i, j], N[i])
+    p[i,j] <- 1 / (1 + exp(-lp.lim[i,j]))    
+    lp.lim[i,j] <- min(999, max(-999, lp[i,j])) # Help stabilize the logit
+    
+    lp[i, j] <-  beta1.p*Temp.s[i,j] + beta2.p*Temp.s2[i,j] + beta3.p*Precip.s[i,j] + beta4.p*gcover[i] + beta5.p*gcover2[i] + beta10.p*RH.s[i,j] + delta.p[i,j]
+    
+    # Assess model fit using Chi-squared discrepancy
+    # Compute fit statistic for observed data
+    eval[i,j] <- p[i,j] * N[i]
+    E[i,j] <- pow((C[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
+    # Generate replicate data and compute fit stats for them
+    y.new[i,j] ~ dbin(p[i,j], N[i])
+    E.new[i,j] <- pow((y.new[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
+    
+    diff.cy[i,j] <- C[i,j] - y.new[i,j]
+    }
+    }
+    
+    # Derived quantities
+    totalN<- sum(N[])
+    fit <- sum(E[,])
+    fit.new <- sum(E.new[,])
+    
+    }
+    ", fill = TRUE)
+sink()
+
+Nst <- apply(PJOR, 1, function(x) max(x, na.rm = TRUE)) + 1
+inits <- function(){
+  list(N = Nst,
+       alpha.lam = rnorm(1, 0.5, 1),
+       beta1.lam = rnorm(1, 2, 1),
+       beta2.lam = rnorm(1, -2, 1),
+       beta3.lam = rnorm(1, 0, 1),
+       beta4.lam = rnorm(1, 0, 1),
+       beta5.lam = rnorm(1, 0, 1),
+       beta6.lam = rnorm(1, 0, 1),
+       beta7.lam = rnorm(1, 0, 1),
+       beta8.lam = rnorm(1, 0, 1),
+       beta9.lam = rnorm(1, 0, 1),
+       beta10.lam = rnorm(1, 0, 1),
+       beta11.lam = rnorm(1, 0, 1),
+       beta12.lam = rnorm(1, 0, 1),
+       beta13.lam = rnorm(1, 0, 1),
+       eps.lam = rnorm(48, 0, 1),
+       alpha.p = rnorm(1, -1, 1),
+       beta1.p = rnorm(1, 0, 1),
+       beta2.p = rnorm(1, 0, 1),
+       beta3.p = rnorm(1, 0.5, 1),
+       beta4.p = rnorm(1, 0.5, 1),
+       beta5.p = rnorm(1, 0.5, 1),
+       beta10.p = rnorm(1, 0.5, 1),
+       sigma.site = runif(1, 0, 1),
+       sigma.p = runif(1, 0, 1))#,
+  #delta.p = rnorm(195*6, 0, 1))
+}
+
+params <- c( "alpha.lam", 
+             "beta1.lam", 
+             "beta2.lam", 
+             "beta3.lam",
+             "beta4.lam",
+             "beta5.lam",
+             "beta6.lam",
+             "beta7.lam",
+             "beta8.lam",
+             "beta9.lam",
+             "beta10.lam",
+             "beta11.lam",
+             "beta12.lam",
+             "beta13.lam",
+             "alpha.p", 
+             "beta1.p",
+             "beta2.p",
+             "beta3.p",
+             "beta4.p",
+             "beta5.p",
+             "beta10.p",
+             "eps.lam",
+             "delta.p",
+             "sigma.site",
+             "sigma.p",
+             "N",
+             "p",
+             "fit",
+             "fit.new")
+
+pjor.od.data <- list(C = as.matrix(PJOR[, 1:6]), 
+                     n.transects = n.transects, 
+                     n.surveys = n.surveys,
+                     n.sites = length(site.inits), 
+                     elev = elev, 
+                     elev2 = elev2, 
+                     slope = slope,
+                     slope2 = slope2, 
+                     aspectN = aspectN,
+                     aspectE = aspectE,
+                     ltwi = ltwi,
+                     tpi = tpi,
+                     trail = trail,
+                     canopy = canopy,
+                     gcover = gcover,
+                     gcover2 = gcover2,
+                     litterdepth = litterdepth,
+                     lstream = lstream,
+                     site = as.numeric(site),
+                     Temp.s = as.matrix(Temp.s[ ,1:6]),
+                     Temp.s2 = Temp.s*Temp.s,
+                     RH.s = RH.s[ ,1:6],
+                     Precip.s = Precip.s[ ,1:6])
+
+library(parallel)
+library(rjags)
+
+cl <- makeCluster(4)                       # Request # cores
+clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
+clusterSetRNGStream(cl = cl, 1259)
+
+system.time({ # no status bar (% complete) when run in parallel
+  out <- clusterEvalQ(cl, {
+    library(rjags)
+    jm <- jags.model("Code/Jags_Models/full_elev_od.txt", pjor.od.data, inits, n.adapt=nb, n.chains=1) # Compile model and run burnin
+    out <- coda.samples(jm, params, n.iter=ni, thin=nt) # Sample from posterior distribution
+    return(as.mcmc(out))
+  })
+}) # 
+
+# Results
+pjor_od<- mcmc.list(out)
+plot(pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
+par(mfrow = c(1,1))
+summary(pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+
+stopCluster(cl)
+
+plot(pjor_od[[1]][,c("sigma.site")]) # problem chain
+plot(pjor_od[[2]][,c("fit.new")])
+plot(pjor_od[[3]][,c("fit.new")])
+plot(pjor_od[[4]][,c("fit.new")]) # 
+
+pjor_od <- mcmc.list(out[[2]], out[[3]], out[[3]])
+# Check fit
+for(i in 1:3) bayesP.pjor <- mean(pjor_od[, "fit.new",][[i]] > pjor_od[, "fit",][[i]]) # 0.332 good fit but problems with convergence of elev and elev^2
+print(bayesP.pjor, dig = 3)
+
+par(mfrow=c(1,1))
+plot(as.matrix(pjor_od[, "fit",]), as.matrix(pjor_od[, "fit.new",])) # imperfect but acceptable
+abline(0, 1, col = 'red')
+
+gelman.diag(x=pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+print(gelman.diag(x=pjor_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]), dig=3) # no convergence of elev and elev^2
+g <- matrix(NA, nrow=nvar(pjor_od), ncol=2)
+for (v in 1:nvar(pjor_od)) {
+  g[v,] <- gelman.diag(pjor_od[,v])$psrf
+}
+max(g[,1], na.rm = TRUE) # a bit higher than multivariate 
+max(g[,2], na.rm = TRUE) # max
+
+
+
 #---------- extra? ---------------
 
 
@@ -4130,7 +4559,7 @@ print(gelman.diag(x=pjor_occ[,c("alpha.lam", "beta1.lam", "beta3.lam", "beta4.la
 
 
 
-#----------Full model site abund Overdispersion in detection------------
+#----------Final model site abund Overdispersion in detection------------
 # random effect of site on abundance and random effect of transect*observation in detection
 # Define model
 sink("Code/Jags_Models/final_od.txt")
@@ -4174,7 +4603,7 @@ cat("
     for(i in 1:n.transects){
     N[i] ~ dpois(lambda[i])
     
-    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta6.lam*tpi[i] + beta8.lam*twi[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta13.lam*stream[i] + eps.lam[site[i]]
+    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta6.lam*stream[i] + beta13.lam*stream[i]*elev[i] + eps.lam[site[i]]
     
     for(j in 1:n.surveys){
     C[i, j] ~ dbin(p[i, j], N[i])
@@ -4205,7 +4634,7 @@ cat("
 sink()
 
 
-#----------Full model site abund Overdispersion in detection------------
+#----------Final model site abund Overdispersion in detection------------
 # random effect of site on abundance and random effect of transect*observation in detection
 # Define model
 sink("Code/Jags_Models/final_elev_od.txt")
@@ -4218,6 +4647,7 @@ cat("
     beta8.lam ~ dnorm(0, 0.01)
     beta9.lam ~ dnorm(0, 0.01)
     beta11.lam ~ dnorm(0, 0.01)
+    beta13.lam ~ dnorm(0, 0.01)
     
     for(i in 1:n.sites){
     eps.lam[i] ~ dnorm(alpha.lam, tau.site)
@@ -4247,7 +4677,7 @@ cat("
     for(i in 1:n.transects){
     N[i] ~ dpois(lambda[i])
     
-    log(lambda[i]) <- beta1.lam*elev[i] + beta6.lam*tpi[i] + beta8.lam*twi[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + eps.lam[site[i]]
+    log(lambda[i]) <- beta1.lam*elev[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta6.lam*stream[i] + beta13.lam*stream[i]*elev[i] + eps.lam[site[i]]
     
     for(j in 1:n.surveys){
     C[i, j] ~ dbin(p[i, j], N[i])

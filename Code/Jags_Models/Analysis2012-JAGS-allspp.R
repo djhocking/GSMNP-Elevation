@@ -18,12 +18,12 @@ if(!dir.exists("Results/JAGS")) dir.create("Results/JAGS", recursive = TRUE)
 
 #-----------Load Data and do Manipulation--------
 # Import and check data
-Data <- read.table('TransectData2012.csv', header = TRUE, sep = ',', stringsAsFactors = FALSE)
+Data <- read.table('Data/Raw/TransectData2012.csv', header = TRUE, sep = ',', stringsAsFactors = FALSE)
 
-Side <- read.table('Side.csv', header = TRUE, sep = ',')
+Side <- read.table('Data/Raw/Side.csv', header = TRUE, sep = ',')
 Data <- merge(x=Data, y=Side, by.x = "site", by.y = 'site', all.x = TRUE, sort = FALSE)
 
-Stream <- read.table('Strm_Dist.csv', header = TRUE, sep = ",")
+Stream <- read.table('Data/Raw/Strm_Dist.csv', header = TRUE, sep = ",")
 Data <- merge(x = Data, y=Stream, by.x = "transect", by.y = 'plot_trans', all.x = TRUE, sort = FALSE)
 
 Data <- Data[order(Data$elev, na.last = TRUE), ] 
@@ -83,7 +83,7 @@ sum(PTEY, na.rm = TRUE))
 
 Species <- c('D. conanti', 'D. imitator', 'D. monticola', 'D. ocoee', 'D. quadramaculatus', 'D. santeetlah', 'D. wrighti', 'E. wilderae', 'G. porphyriticus', 'N. viridescens', 'P. glutinosus', 'P. jordani', 'P. seratus', 'P. teyahalee')
 
-write.table(data.frame(Species, Count), file = 'TotalCounts.csv', sep = ",", row.names = FALSE)
+write.table(data.frame(Species, Count), file = 'Data/TotalCounts.csv', sep = ",", row.names = FALSE)
 
 PJORmin <- apply(PJOR, 1, function(x) max(x, na.rm = TRUE))
 DCONmin <- apply(DCON, 1, function(x) max(x, na.rm = TRUE))
@@ -216,7 +216,7 @@ stream <- (Data$strm_dist - mean(Data$strm_dist))/sd(Data$ststrm_distream)
 Data$gcover2 <- Data$gcover^2
 gcover2 <- gcover^2
 
-site.inits <- read.table('site_inits.csv', header = TRUE, sep = ',')
+site.inits <- read.table('Data/Raw/site_inits.csv', header = TRUE, sep = ',')
 site.inits <- as.vector(site.inits$siteinit)
 
 n.transects <- nrow(Data)
@@ -303,7 +303,7 @@ minMaxElev(PJOR)
 
 spp.list <- list(DCON=DCON, DIMI=DIMI, DOCO=DOCO, DMON=DMON, DQUA=DQUA, DSAN=DSAN, DWRI=DWRI, EWIL=EWIL, GPOR=GPOR, NVIR=NVIR, PGLU=PGLU, PJOR=PJOR, PSER=PSER, PTEY=PTEY)
 min.max.elev <- t(sapply(spp.list, FUN = minMaxElev))
-write.table(min.max.elev, file = "min-max-elev.csv", sep = ",")
+write.table(min.max.elev, file = "Data/min-max-elev.csv", sep = ",")
 
 
 #---------------------------BAYESIAN----------------------------------
