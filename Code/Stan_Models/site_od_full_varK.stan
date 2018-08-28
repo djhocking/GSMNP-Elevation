@@ -120,7 +120,7 @@ generated quantities {
     matrix[R, T] E_new;
     //  matrix[T, 1] E[R];
     // matrix[T, 1] E_new[R];
-    vector[K[i] + 1] lp; // problem!!!!!!!!!!!!
+    // vector[K[i] + 1] lp; // problem!!!!!!!!!!!!
     // matrix[K + 1, T] lp;
    // vector[50] log_lik;
   
