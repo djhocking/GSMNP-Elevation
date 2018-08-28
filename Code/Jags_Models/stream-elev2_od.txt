@@ -3,11 +3,12 @@
     # Priors
     alpha.lam ~ dnorm(0, 0.01)
     beta1.lam ~ dnorm(0, 0.01)
-    # beta2.lam ~ dnorm(0, 0.01)
-    beta3.lam ~ dnorm(0, 0.01)
-    beta4.lam ~ dnorm(0, 0.01)
-    beta5.lam ~ dnorm(0, 0.01)
+    beta2.lam ~ dnorm(0, 0.01)
     beta6.lam ~ dnorm(0, 0.01)
+    beta8.lam ~ dnorm(0, 0.01)
+    beta9.lam ~ dnorm(0, 0.01)
+    beta11.lam ~ dnorm(0, 0.01)
+    beta13.lam ~ dnorm(0, 0.01)
     
     for(i in 1:n.sites){
     eps.lam[i] ~ dnorm(alpha.lam, tau.site)
@@ -37,7 +38,7 @@
     for(i in 1:n.transects){
     N[i] ~ dpois(lambda[i])
     
-    log(lambda[i]) <- beta1.lam*elev[i] + beta3.lam*twi[i] + beta4.lam*litterdepth[i] + beta5.lam*gcover[i] + beta6.lam*stream[i] + eps.lam[site[i]]
+    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta9.lam*canopy[i] + beta11.lam*litterdepth[i] + beta6.lam*stream[i] + beta8.lam*stream[i]*elev[i] + eps.lam[site[i]]
     
     for(j in 1:n.surveys){
     C[i, j] ~ dbin(p[i, j], N[i])
