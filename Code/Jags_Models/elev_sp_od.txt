@@ -39,7 +39,7 @@
     w <- 1/sqrt(tauw) # spatial SD
     # theta ~ dgamma(0.01, 0.01) # spatial correlation rate
 # theta ~ dunif(0, 1000) # spatial correlation rate
-theta ~ dnorm(0, 0.01)T(0, 1000) # spatial correlation rate
+theta ~ dnorm(0, 0.01) # T(0, 1000) # spatial correlation rate
     for (i in 1:n.transects){ 
     for(j in 1:n.transects){
     # H[i, j] <- (1/tauw) * exp(-theta*pow(d[i,j] ,2)) # Spatial covariance matrix
