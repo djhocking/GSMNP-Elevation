@@ -3,7 +3,7 @@ library(rjags)
 library(coda)
 library(parallel)
 
-load("Data/Processed/jags_prep.RData")
+load("Data/jags_prep.RData")
 
 tpi <- (Data$tpi_100 - mean(Data$tpi_100))/sd(Data$tpi_100)
 
@@ -17,7 +17,7 @@ if(testing) {
 } else {
   nb = 100000
   ni = 200000
-  nt = 40
+  nt = 80
 }
 
 pjor.od.data <- list(C = as.matrix(PJOR[, 1:6]), 
@@ -129,7 +129,7 @@ inits <- function(){
 params <- c( "alpha.lam", 
              "beta1.lam", 
              #"beta2.lam", 
-             "beta3.lam",
+             # "beta3.lam",
              "beta6.lam",
              "beta8.lam",
              "beta9.lam",
@@ -210,7 +210,7 @@ params <- c( "alpha.lam",
              "beta8.lam",
              "beta9.lam",
              "beta11.lam",
-             "beta13.lam",
+             # "beta13.lam",
              "alpha.p", 
              "beta1.p",
              "beta2.p",
@@ -281,7 +281,7 @@ inits <- function(){
 params <- c( "alpha.lam", 
              "beta1.lam", 
              #"beta2.lam", 
-             "beta3.lam",
+             # "beta3.lam",
              "beta6.lam",
              "beta8.lam",
              "beta9.lam",
@@ -357,12 +357,12 @@ inits <- function(){
 params <- c( "alpha.lam", 
              "beta1.lam", 
              "beta2.lam",
-             "beta3.lam",
+             # "beta3.lam",
              "beta6.lam",
              "beta8.lam",
              "beta9.lam",
              "beta11.lam",
-             "beta13.lam",
+             # "beta13.lam",
              "alpha.p", 
              "beta1.p",
              "beta2.p",
@@ -434,12 +434,12 @@ inits <- function(){
 params <- c( "alpha.lam", 
              "beta1.lam", 
              "beta2.lam",
-             "beta3.lam",
+             # "beta3.lam",
              "beta6.lam",
              "beta8.lam",
              "beta9.lam",
              "beta11.lam",
-             "beta13.lam",
+             # "beta13.lam",
              "alpha.p", 
              "beta1.p",
              "beta2.p",
