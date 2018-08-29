@@ -612,6 +612,83 @@ rm(out)
 gc()
 
 
+##### EWIL Stream^2 #####
+
+Nst <- apply(EWIL, 1, function(x) max(x, na.rm = TRUE)) + 1
+inits <- function(){
+  list(N = Nst,
+       alpha.lam = rnorm(1, 0.5, 1),
+       beta1.lam = rnorm(1, 2, 1),
+       beta2.lam = rnorm(1, -2, 1),
+       beta3.lam = rnorm(1, 0, 1),
+       beta4.lam = rnorm(1, 0, 1),
+       beta5.lam = rnorm(1, 0, 1),
+       beta6.lam = rnorm(1, 0, 1),
+       beta7.lam = rnorm(1, 0, 1),
+       eps.lam = rnorm(48, 0, 1),
+       alpha.p = rnorm(1, -1, 1),
+       beta1.p = rnorm(1, 0, 1),
+       beta2.p = rnorm(1, 0, 1),
+       beta3.p = rnorm(1, 0.5, 1),
+       beta4.p = rnorm(1, 0.5, 1),
+       beta5.p = rnorm(1, 0.5, 1),
+       beta10.p = rnorm(1, 0.5, 1),
+       sigma.site = runif(1, 0, 1),
+       sigma.p = runif(1, 0, 1))#,
+  #delta.p = rnorm(195*6, 0, 1))
+}
+
+params <- c( "alpha.lam", 
+             "beta1.lam", 
+             "beta2.lam",
+             "beta3.lam",
+             "beta4.lam",
+             "beta5.lam",
+             "beta6.lam",
+             "beta7.lam",
+             "alpha.p", 
+             "beta1.p",
+             "beta2.p",
+             "beta3.p",
+             "beta4.p",
+             "beta5.p",
+             "beta10.p",
+             "eps.lam",
+             "delta.p",
+             "sigma.site",
+             "sigma.p",
+             "N",
+             "p",
+             "fit",
+             "fit.new")
+
+cl <- makeCluster(4)                       # Request # cores
+clusterExport(cl, c("ewil.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
+clusterSetRNGStream(cl = cl, 12590)
+
+system.time({ # no status bar (% complete) when run in parallel
+  out <- clusterEvalQ(cl, {
+    library(rjags)
+    jm <- jags.model("Code/Jags_Models/final_stream2_od.txt", ewil.od.data, inits, n.adapt=nb, n.chains=1) # Compile model and run burnin
+    out <- coda.samples(jm, params, n.iter=ni, thin=nt) # Sample from posterior distribution
+    return(as.mcmc(out))
+  })
+}) # 
+
+stopCluster(cl)
+
+# Results
+ewil_od2 <- mcmc.list(out)
+plot(ewil_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
+par(mfrow = c(1,1))
+summary(ewil_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
+
+save(ewil_od2, file = "Results/JAGS/ewil_stream2_mcmc_out.RData")
+# saveRDS(ewil_od, file = "Results/JAGS/ewil_mcmc_out.rds")
+
+rm(out)
+gc()
+
 
 
 
