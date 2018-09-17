@@ -118,7 +118,7 @@ inits <- lapply(1:nc, function(i)
 
 ## Call Stan from R
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-site_od_full_ewil <- stan("Code/Stan_Models/final_stream2_od.stan",
+site_od_stream2_ewil <- stan("Code/Stan_Models/final_stream2_od.stan",
                           data = list(y = EWIL5, 
                                       R = n.transects, 
                                       T = n.surveys, 
@@ -145,7 +145,7 @@ site_od_full_ewil <- stan("Code/Stan_Models/final_stream2_od.stan",
                           verbose = TRUE)
 
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-saveRDS(site_od_full_ewil, file = "Results/Stan/final_od_ewil_hmc.Rds")
+saveRDS(site_od_stream2_ewil, file = "Results/Stan/final_stream2_od_ewil_hmc.Rds")
 
 print(site_od_full_ewil, digits = 3)
 print(site_od_full_ewil, pars = "p_test", digits = 3)

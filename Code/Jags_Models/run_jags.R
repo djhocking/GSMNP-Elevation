@@ -601,7 +601,7 @@ stopCluster(cl)
 
 # Results
 ewil_od <- mcmc.list(out)
-plot(ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
+plot(ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new")]) # 
 par(mfrow = c(1,1))
 summary(ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta4.lam", "beta5.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
 

@@ -4723,11 +4723,11 @@ cat("
     beta6.lam ~ dnorm(0, 0.01)
     
     for(i in 1:n.sites){
-    eps.lam[i] ~ dnorm(alpha.lam, tau.site)
+    eps.lam[i] ~ dnorm(0, 1)
     }
     
-    sigma.site ~ dunif(0, 5)
-    tau.site <- 1/(sigma.site*sigma.site)
+    sigma.site ~ dt(0, 1 / (25^2), 1)I(0, ) 	## implies half-cauchy with scale of 25
+    # tau.site <- 1/(sigma.site*sigma.site)
     
     alpha.p ~ dnorm(0, 0.01)
     beta1.p ~ dnorm(0, 0.01)
@@ -4737,12 +4737,15 @@ cat("
     beta5.p ~ dnorm(0, 0.01)
     beta10.p ~ dnorm(0, 0.01)
     
-    sigma.p ~ dunif(0, 5)
-    tau.p <- pow(sigma.p, -2)
+# Z.lam ~ dnorm(0, 1)
+# Z.p ~ dnorm(0, 1)
+
+    sigma.p ~ dt(0, 1 / (25^2), 1)I(0, ) 	## implies half-cauchy with scale of 25
+    # tau.p <- pow(sigma.p, -2)
     
     for(i in 1:n.transects){
     for(j in 1:n.surveys){
-    delta.p[i,j] ~ dnorm(alpha.p, tau.p)
+    delta.p[i,j] ~ dnorm(0, 1)
     }
     }
     
@@ -4750,14 +4753,14 @@ cat("
     for(i in 1:n.transects){
     N[i] ~ dpois(lambda[i])
     
-    log(lambda[i]) <- beta1.lam*elev[i] + beta2.lam*elev2[i] + beta3.lam*twi[i] + beta4.lam*litterdepth[i] + beta5.lam*gcover[i] + beta6.lam*stream[i] + eps.lam[site[i]]
+    log(lambda[i]) <- alpha.lam + beta1.lam*elev[i] + beta2.lam*elev2[i] + beta3.lam*twi[i] + beta4.lam*litterdepth[i] + beta5.lam*gcover[i] + beta6.lam*stream[i] + sigma.site * eps.lam[site[i]]
     
     for(j in 1:n.surveys){
     C[i, j] ~ dbin(p[i, j], N[i])
     p[i,j] <- 1 / (1 + exp(-lp.lim[i,j]))    
     lp.lim[i,j] <- min(999, max(-999, lp[i,j])) # Help stabilize the logit
     
-    lp[i, j] <-  beta1.p*Temp.s[i,j] + beta2.p*Temp.s2[i,j] + beta3.p*Precip.s[i,j] + beta4.p*gcover[i] + beta5.p*gcover2[i] + beta10.p*RH.s[i,j] + delta.p[i,j]
+    lp[i, j] <-  alpha.p + beta1.p*Temp.s[i,j] + beta2.p*Temp.s2[i,j] + beta3.p*Precip.s[i,j] + beta4.p*gcover[i] + beta5.p*gcover2[i] + beta10.p*RH.s[i,j] + sigma.p * delta.p[i,j]
     
     # Assess model fit using Chi-squared discrepancy
     # Compute fit statistic for observed data

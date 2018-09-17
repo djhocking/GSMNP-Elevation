@@ -5725,21 +5725,21 @@ params <- c( "alpha.lam",
 pjor.od.data <- list(C = as.matrix(PJOR[, 1:6]), 
                      n.transects = n.transects, 
                      n.surveys = n.surveys,
-                     n.sites = length(site.inits), 
+                     n.sites = n.sites, 
                      elev = elev, 
                      #elev2 = elev2, 
                      slope = slope,
                      #slope2 = slope2, 
-                     #aspectN = aspectN,
-                     #aspectE = aspectE,
+                     aspectN = aspectN,
+                     aspectE = aspectE,
                      ltwi = ltwi,
                      tpi = tpi,
                      trail = trail,
                      canopy = canopy,
                      gcover = gcover,
-                     gcover2 = gcover2,
+                     gcover2 = gcover*gcover,
                      litterdepth = litterdepth,
-                     lstream = lstream,
+                     lstream = stream,
                      site = as.numeric(site),
                      Temp.s = as.matrix(Temp.s[ ,1:6]),
                      Temp.s2 = Temp.s*Temp.s,
@@ -5750,25 +5750,26 @@ library(parallel)
 library(rjags)
 
 cl <- makeCluster(4)                       # Request # cores
-clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst")) # Make these available
+clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt", "nc")) # Make these available
 clusterSetRNGStream(cl = cl, 1259)
 
 system.time({ # no status bar (% complete) when run in parallel
   out <- clusterEvalQ(cl, {
     library(rjags)
-    jm <- jags.model("pjor_od4.txt", pjor.od.data, inits, n.adapt=300000, n.chains=1) # Compile model and run burnin
-    out <- coda.samples(jm, params, n.iter=100000, thin=40) # Sample from posterior distribution
+    jm <- jags.model("pjor_od4.txt", pjor.od.data, inits, n.adapt=nb, n.chains=1) # Compile model and run burnin
+    out <- coda.samples(jm, params, n.iter=ni, thin=nt) # Sample from posterior distribution
     return(as.mcmc(out))
   })
 }) # 
 
 # Results
 pjor_od4 <- mcmc.list(out)
+
+stopCluster(cl)
+
 plot(pjor_od4[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")]) # 
 par(mfrow = c(1,1))
 summary(pjor_od3[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta7.lam", "beta8.lam", "beta9.lam", "beta11.lam", "beta13.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "fit", "fit.new")])
-
-stopCluster(cl)
 
 # Check fit
 for(i in 1:3) bayesP.pjor4 <- mean(pjor_od4[, "fit.new",][[i]] > pjor_od4[, "fit",][[i]]) # 0.295
