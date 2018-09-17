@@ -5,8 +5,8 @@
 ########################################################################
 
 #-------Load Packages------
-library(parallel)
-library(rjags)
+# library(parallel)
+# library(rjags)
 library(dplyr)
 library(ggplot2)
 library(devtools)
@@ -30,20 +30,26 @@ Data <- merge(x = Data, y=Stream, by.x = "transect", by.y = 'plot_trans', all.x 
 n.transects <- nrow(Data)
 
 # Make numeric and factor versions of site groupings
-Data <- Data %>%
-  dplyr::arrange(site)
+# Data <- Data %>%
+#   dplyr::arrange(site)
+# 
+# Data$site1 <- as.numeric(seq(1,n.transects))
+# for(i in 2:n.transects){
+#   Data$site1[i] <- ifelse(Data$site[i] == Data$site[i-1], Data$site1[i-1], (Data$site1[i-1] + 1))
+# }
 
-Data$site1 <- as.numeric(seq(1,n.transects))
-for(i in 2:n.transects){
-  Data$site1[i] <- ifelse(Data$site[i] == Data$site[i-1], Data$site1[i-1], (Data$site1[i-1] + 1))
-}
-Data$sitef <- as.factor(Data$site1)
+# Data$sitef <- as.factor(Data$site1)
+Data$sitef <- as.factor(Data$site)
+sites <- unique(Data$site)
+sites_df <- data.frame(site = sites, site_num = seq(1, length(sites)), stringsAsFactors = FALSE)
+Data <- Data %>%
+  dplyr::left_join(sites_df)
 Data$sidef <- as.factor(Data$side)
 
-Data <- Data[order(Data$elev, na.last = TRUE), ] 
+# Data <- Data[order(Data$elev, na.last = TRUE), ] 
 
 # separate data
-PJOR <- Data[ , 3:8]
+PJOR <- Data[ , c('PJOR1', 'PJOR2', 'PJOR3', 'PJOR4', 'PJOR5', 'PJOR6')]
 Precip <- Data[ , c('precip1', 'precip2', 'precip3', 'precip4', 'precip5', 'precip6')]
 Temp <- Data[ , c('temp1', 'temp2', 'temp3', 'temp4', 'temp5', 'temp6')]
 RH <- Data[ , c('RH1', 'RH2', 'RH3', 'RH4', 'RH5', 'RH6')]
@@ -64,19 +70,20 @@ PGLU <- Data[ , c('PGLU1', 'PGLU2', 'PGLU3', 'PGLU4', 'PGLU5', 'PGLU6')]
 PSER <- Data[ , c('PSER1', 'PSER2', 'PSER3', 'PSER4', 'PSER5', 'PSER6')]
 PTEY <- Data[ , c('PTEY1', 'PTEY2', 'PTEY3', 'PTEY4', 'PTEY5', 'PTEY6')]
 
-DCON <- replace(DCON, is.na(PJOR), NA)
-DIMI <- replace(DIMI, is.na(PJOR), NA)
-DMON <- replace(DMON, is.na(PJOR), NA)
-DOCO <- replace(DOCO, is.na(PJOR), NA)
-DQUA <- replace(DQUA, is.na(PJOR), NA)
-DSAN <- replace(DSAN, is.na(PJOR), NA)
-DWRI <- replace(DWRI, is.na(PJOR), NA)
-EWIL <- replace(EWIL, is.na(PJOR), NA)
-GPOR <- replace(GPOR, is.na(PJOR), NA)
-NVIR <- replace(NVIR, is.na(PJOR), NA)
-PGLU <- replace(PGLU, is.na(PJOR), NA)
-PSER <- replace(PSER, is.na(PJOR), NA)
-PTEY <- replace(PTEY, is.na(PJOR), NA)
+PJOR <- replace(PJOR, is.na(RH), NA)
+DCON <- replace(DCON, is.na(RH), NA)
+DIMI <- replace(DIMI, is.na(RH), NA)
+DMON <- replace(DMON, is.na(RH), NA)
+DOCO <- replace(DOCO, is.na(RH), NA)
+DQUA <- replace(DQUA, is.na(RH), NA)
+DSAN <- replace(DSAN, is.na(RH), NA)
+DWRI <- replace(DWRI, is.na(RH), NA)
+EWIL <- replace(EWIL, is.na(RH), NA)
+GPOR <- replace(GPOR, is.na(RH), NA)
+NVIR <- replace(NVIR, is.na(RH), NA)
+PGLU <- replace(PGLU, is.na(RH), NA)
+PSER <- replace(PSER, is.na(RH), NA)
+PTEY <- replace(PTEY, is.na(RH), NA)
 
 # Total Captures
 Count <- c( 
@@ -208,9 +215,9 @@ site <- Data$sitef
 canopy <- (Data$canopy - mean(Data$canopy))/sd(Data$canopy)
 litterdepth <- (Data$litdepth - mean(Data$litdepth))/sd(Data$litdepth)
 gcover <- (Data$gcover - mean(Data$gcover, na.rm = TRUE))/sd(Data$gcover, na.rm = TRUE)
-# Data$ltwi <- log(Data$twi_10 + 10)
-ltwi <- Data$twi_10
-ltwi <- (Data$twi_10 - mean(Data$twi_10))/sd(Data$twi_10)
+Data$ltwi <- log(Data$twi_10 + 10)
+# ltwi <- Data$twi_10
+ltwi <- (Data$ltwi - mean(Data$ltwi))/sd(Data$ltwi)
 Data$lstream <- log(Data$strm_dist + 1)
 lstream <- (Data$lstream - mean(Data$lstream))/sd(Data$lstream)
 stream <- (Data$strm_dist - mean(Data$strm_dist))/sd(Data$strm_dist)
@@ -290,7 +297,7 @@ head(ppt_30yr)
 
 # summarize
 ppt_30yr_active <- ppt_30yr %>%
-  dplyr::rename(lon = Long, lat = Lat) %>%
+  # dplyr::rename(lon = Long, lat = Lat) %>%
   dplyr::group_by(lon, lat, transect) %>%
   dplyr::summarise(ppt = min(ppt)) # use month with minimum ppt at each transect
 
@@ -345,7 +352,7 @@ head(temp_30yr)
 
 # summarize
 temp_30yr_active <- temp_30yr %>%
-  dplyr::rename(lon = Long, lat = Lat) %>%
+  # dplyr::rename(lon = Long, lat = Lat) %>%
   dplyr::group_by(lon, lat, transect) %>%
   dplyr::summarise(tmean = max(tmean)) # maybe use hottest month? rather than mean
 
@@ -475,6 +482,9 @@ write.table(min.max.elev, file = "Results/min-max-elev.csv", sep = ",")
 #------------ save everything for use in models -----------
 
 if(!dir.exists("Data/Processed")) dir.create("Data/Processed", recursive = TRUE)
+
+n.sites <- length(unique(Data$site))
+n.sites == max(Data$site_num)
 
 save(Data, df, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJORmin, DWRI, DWRImin, EWIL, EWILmin,  file = "Data/Processed/jags_prep.RData")
 
