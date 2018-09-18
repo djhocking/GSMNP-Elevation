@@ -238,7 +238,7 @@ stopCluster(cl)
 pjor_od2 <- mcmc.list(out)
 plot(pjor_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new")]) # 
 par(mfrow = c(1,1))
-summary(pjor_od2[,c("alpha.lam", "beta1.lam", "beta6.lam", "beta8.lam", "beta9.lam", "beta11.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")])
+summary(pjor_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.site", "sigma.p", "fit", "fit.new", "N[1]", "N[60]", "N[100]", "N[150]")])
 
 save(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.RData")
 # saveRDS(pjor_od2, file = "Results/JAGS/pjor2_mcmc_out.rds")
