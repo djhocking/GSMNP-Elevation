@@ -16,8 +16,8 @@ if(testing) {
   nt = 1
 } else {
   nb = 100000
-  ni = 400000
-  nt = 160
+  ni = 600000
+  nt = 60
 }
 
 pjor.od.data <- list(C = as.matrix(PJOR[, 1:6]), 
@@ -147,7 +147,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12591)
 
@@ -219,7 +219,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12592)
 
@@ -293,7 +293,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12591)
 
@@ -367,7 +367,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("pjor.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12591)
 
@@ -439,7 +439,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("dwri.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12593)
 
@@ -511,7 +511,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("dwri.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12590)
 
@@ -584,7 +584,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("ewil.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12590)
 
@@ -660,7 +660,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("ewil.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12590)
 
@@ -737,7 +737,7 @@ params <- c( "alpha.lam",
              "fit",
              "fit.new")
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("ewil.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 12590)
 
@@ -847,7 +847,7 @@ ewil.od.data <- list(C = as.matrix(EWIL[, 1:6]),
                      RH.s = RH.s[ ,1:6],
                      Precip.s = Precip.s[ ,1:6])
 
-cl <- makeCluster(4)                       # Request # cores
+cl <- makeCluster(5)                       # Request # cores
 clusterExport(cl, c("ewil.od.data", "inits", "params", "Nst", "ni", "nb", "nt")) # Make these available
 clusterSetRNGStream(cl = cl, 1259)
 
