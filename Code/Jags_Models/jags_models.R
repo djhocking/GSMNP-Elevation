@@ -4726,7 +4726,7 @@ cat("
     eps.lam[i] ~ dnorm(0, 1)
     }
     
-    sigma.site ~ dt(0, 1 / (25^2), 1)I(0, ) 	## implies half-cauchy with scale of 25
+    sigma.site ~ dt(0, 1 / (25^2), 1)I(0, ) 	## implies half-cauchy with scale of 25 which is probably absurdly large
     # tau.site <- 1/(sigma.site*sigma.site)
     
     alpha.p ~ dnorm(0, 0.01)
