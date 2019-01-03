@@ -33,6 +33,28 @@ theme_bw_journal <- function (base_family = "") {
 theme_set(theme_bw_journal())
 # theme_update(plot.title = element_text(hjust = 0.5))
 
+theme_bw_journal <- function (base_family = "") {
+  theme_grey(base_family = base_family) %+replace%
+    theme(
+      axis.text = element_text(size = rel(1.2)), 
+      axis.title = element_text(size =rel(1.25)), 
+      axis.ticks = element_line(colour = "black"),
+      legend.key = element_rect(colour = "grey80"),
+      panel.background = element_rect(fill = "white",
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey50"), 
+      panel.grid.major = element_line(colour = "grey90", 
+                                      size = 0.2), 
+      panel.grid.minor = element_line(colour = "grey98",
+                                      size = 0.5), 
+      strip.background = element_rect(fill = "grey80", 
+                                      colour = "grey50", 
+                                      size = 0.),
+      plot.title = element_text(hjust = 0.5,
+                                size = rel(1.5)))
+}
+
 # Load Data
 
 # load(file = "Results/JAGS/ewil_stream2_mcmc_out.RData")
@@ -153,7 +175,7 @@ theme_set(theme_bw_journal())
 # quants_df <- data.frame(gcover, quants)
 # colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
 # 
-# gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground Gover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
+# gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 # 
 # pjor_N_grid <- arrangeGrob(gg_elev + coord_cartesian(ylim = c(0, 1000)), 
 #                       gg_depth + coord_cartesian(ylim = c(0, 1000)) + ylab(""), 
@@ -175,28 +197,9 @@ theme_set(theme_bw_journal())
 ##### PJOR Elev2 #####
 load("Data/Processed/jags_prep.RData")
 load(file = "Results/JAGS/pjor2_mcmc_out.RData")
-theme_bw_journal <- function (base_family = "") {
-  theme_grey(base_family = base_family) %+replace%
-    theme(
-      axis.text = element_text(size = rel(1.2)), 
-      axis.title = element_text(size =rel(1.25)), 
-      axis.ticks = element_line(colour = "black"),
-      legend.key = element_rect(colour = "grey80"),
-      panel.background = element_rect(fill = "white",
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey50"), 
-      panel.grid.major = element_line(colour = "grey90", 
-                                      size = 0.2), 
-      panel.grid.minor = element_line(colour = "grey98",
-                                      size = 0.5), 
-      strip.background = element_rect(fill = "grey80", 
-                                      colour = "grey50", 
-                                      size = 0.),
-      plot.title = element_text(hjust = 0.5,
-                                size = rel(1.5)))
-}
+
 theme_set(theme_bw_journal())
+
 # Check fit
 for(i in 1:3) bayesP.pjor4 <- mean(pjor_od2[, "fit.new",][[i]] > pjor_od2[, "fit",][[i]]) # ~0.4 good
 print(bayesP.pjor4, dig = 3)
@@ -212,6 +215,28 @@ summary(pjor_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.l
 print(gelman.diag(x=pjor_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")]), dig=3) # good convergence
 
 print(effectiveSize(x=pjor_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[10]", "N[50]", "N[75]", "N[100]", "N[125]", "N[150]", "N[175]", "N[195]")]), dig=3)
+
+(Rhat <- gelman.diag(x = pjor_od2))
+range(Rhat$psrf)
+ess <- effectiveSize(x = pjor_od2)
+hist(ess)
+mean(ess)
+median(ess)
+min(ess)
+
+# Effective samples sizes using rstan::monitor following Hoffman and Gelman (2014) to be more reliable and accurate (as in Monnahan et al. 2017)
+library(rstan)
+sims <- as.array(pjor_od2)
+sims <- aperm(sims, c(1, 3, 2))
+perf <- data.frame(rstan::monitor(sims = sims, warmup=0, print=FALSE, probs=0.5))
+format(perf, dig = 3)
+mean(perf$n_eff)
+median(perf$n_eff)
+min(perf$n_eff)
+
+reject <- rejectionRate(pjor_od2)
+mean(reject)
+median(reject)
 
 Quants.pjor <- apply(as.matrix(pjor_od2[ , c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new")]), 2, FUN = quantile, probs = c(0.025, 0.5, 0.975))
 
@@ -290,7 +315,7 @@ quants <- t(apply(as.matrix(N_hat_pjor), 2, FUN = stats::quantile, probs = c(0.0
 quants_df <- data.frame(gcover, quants)
 colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
 
-gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground Gover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
+gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 
 pjor2_N_grid <- arrangeGrob(gg_elev + coord_cartesian(ylim = c(0, 250)), 
                            gg_depth + coord_cartesian(ylim = c(0, 250)) + ylab(""), 
@@ -305,6 +330,19 @@ plot(pjor2_N_grid)
 if(!dir.exists("Results/JAGS/Figures")) dir.create("Results/JAGS/Figures", recursive = TRUE)
 
 ggsave(file = "Results/JAGS/Figures/pjor_N_grid.pdf", pjor2_N_grid, dpi = 1000)
+
+## Ground cover detection curve
+
+lp_hat_pjor <- matrix(NA, length(fit_pjor$alpha.p), length(gcover_s))
+for(i in 1:length(fit_pjor$alpha.lam)) {
+  lp_hat_pjor[i, ] <- fit_pjor$alpha.p[i] + fit_pjor$beta4.p[i] * gcover_s + fit_pjor$beta5.lam[i] * gcover_s * gcover_s
+}
+p_hat_pjor <- exp(lp_hat_pjor) / (1 + exp(lp_hat_pjor))
+quants <- t(apply(as.matrix(p_hat_pjor), 2, FUN = stats::quantile, probs = c(0.025, 0.5, 0.975)))
+quants_df <- data.frame(gcover, quants)
+colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
+
+gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Detection probability") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 
 rm(list = ls())
 gc()
@@ -431,7 +469,7 @@ gc()
 # quants_df <- data.frame(gcover, quants)
 # colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
 # 
-# gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground Gover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
+# gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 # 
 # dwri_N_grid <- arrangeGrob(gg_elev + coord_cartesian(ylim = c(0, 1000)), 
 #                            gg_depth + coord_cartesian(ylim = c(0, 1000)) + ylab(""), 
@@ -490,6 +528,18 @@ summary(dwri_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.l
 print(gelman.diag(x=dwri_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[150]")]), dig=3) # good convergence
 
 print(effectiveSize(x=dwri_od2[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[10]", "N[50]", "N[75]", "N[100]", "N[125]", "N[150]", "N[175]", "N[195]")]), dig=3)
+
+(Rhat <- gelman.diag(x = dwri_od2))
+range(Rhat$psrf)
+ess <- effectiveSize(x = dwri_od2)
+hist(ess)
+mean(ess)
+median(ess)
+min(ess)
+
+reject <- rejectionRate(dwri_od2)
+mean(reject)
+median(reject)
 
 Quants.dwri <- apply(as.matrix(dwri_od2[ , c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new")]), 2, FUN = quantile, probs = c(0.025, 0.5, 0.975))
 
@@ -568,7 +618,7 @@ quants <- t(apply(as.matrix(N_hat_dwri), 2, FUN = stats::quantile, probs = c(0.0
 quants_df <- data.frame(gcover, quants)
 colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
 
-gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground Gover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
+gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 
 dwri2_N_grid <- arrangeGrob(gg_elev + coord_cartesian(ylim = c(0, 25)), 
                             gg_depth + coord_cartesian(ylim = c(0, 25)) + ylab(""), 
@@ -627,6 +677,18 @@ summary(ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.la
 print(gelman.diag(x=ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[10]", "N[50]", "N[75]", "N[100]", "N[125]", "N[150]", "N[175]", "N[195]")]), dig=3) # good convergence
 
 print(effectiveSize(x=ewil_od[,c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[10]", "N[50]", "N[75]", "N[100]", "N[125]", "N[150]", "N[175]", "N[195]")]), dig=3)
+
+(Rhat <- gelman.diag(x = ewil_od))
+range(Rhat$psrf)
+ess <- effectiveSize(x = ewil_od)
+hist(ess)
+mean(ess)
+median(ess)
+min(ess)
+
+reject <- rejectionRate(ewil_od)
+mean(reject)
+median(reject)
 
 # Effective samples sizes using rstan::monitor following Hoffman and Gelman (2014) to be more reliable and accurate (as in Monnahan et al. 2017)
 ewil_sims <- as.array(ewil_od[ , c("alpha.lam", "beta1.lam", "beta2.lam", "beta3.lam", "beta4.lam", "beta5.lam", "beta6.lam", "sigma.site", "alpha.p", "beta1.p", "beta2.p", "beta3.p", "beta4.p", "beta5.p", "beta10.p", "sigma.p", "fit", "fit.new", "N[1]", "N[10]", "N[50]", "N[75]", "N[100]", "N[125]", "N[150]", "N[175]", "N[195]")])
@@ -711,7 +773,7 @@ quants <- t(apply(as.matrix(N_hat_ewil), 2, FUN = stats::quantile, probs = c(0.0
 quants_df <- data.frame(gcover, quants)
 colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
 
-gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground Gover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
+gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 
 ewil_N_grid <- arrangeGrob(gg_elev + coord_cartesian(ylim = c(0, 250)), 
                             gg_depth + coord_cartesian(ylim = c(0, 250)) + ylab(""), 
@@ -855,7 +917,7 @@ gc()
 # quants_df <- data.frame(gcover, quants)
 # colnames(quants_df) <- c("gcover", "LCRI", "Median", "UCRI")
 # 
-# gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground Gover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
+# gg_gcover <- ggplot(quants_df, aes(gcover, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") + xlab("Ground cover (% area)") #+ coord_cartesian(ylim = c(0, 30)) # + geom_point(data = sna, aes(Elevation, Median))
 # 
 # ewil_N_grid <- arrangeGrob(gg_elev + coord_cartesian(ylim = c(0, 250)), 
 #                            gg_depth + coord_cartesian(ylim = c(0, 250)) + ylab(""), 

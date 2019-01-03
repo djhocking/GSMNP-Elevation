@@ -60,7 +60,7 @@
     # Generate replicate data and compute fit stats for them
     y.new[i,j] ~ dbin(p[i,j], N[i])
     E.new[i,j] <- pow((y.new[i,j] - eval[i,j]),2) / (eval[i,j] + 0.5)
-
+    
     diff.cy[i,j] <- C[i,j] - y.new[i,j]
     }
     }
