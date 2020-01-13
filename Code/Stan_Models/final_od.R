@@ -9,7 +9,7 @@ library(rstan)
 library(dplyr)
 
 # Settings
-testing <- TRUE # settings to run quickly when testing model changes = TRUE
+testing <- FALSE # settings to run quickly when testing model changes = TRUE
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -92,8 +92,8 @@ if(testing) {
 } else {
   nb = 10000
   ni = 15000
-  nt = 1
-  nc <- mc.cores
+  nt = 5
+  nc <- parallel::detectCores()
   K = 350
 }
 
@@ -179,6 +179,23 @@ mean_accept_stat_by_chain <- sapply(sampler_params, function(x) mean(x[, "accept
 print(mean_accept_stat_by_chain)
 
 
+# divergences
+library(bayesplot)
+color_scheme_set("darkgray")
+mcmc_scatter(
+  as.matrix(site_od_full_pjor),
+  pars = c("sd_eps", "sd_p"), 
+  np = nuts_params(site_od_full_pjor), 
+  np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
+)
+
+mcmc_pairs(
+  as.matrix(site_od_full_pjor),
+  pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p"), 
+  np = nuts_params(site_od_full_pjor), 
+  np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
+)
+
 print(site_od_full_pjor, par = "log_lik", digits = 2)
 
 library("rstanarm")
@@ -210,7 +227,7 @@ fit <- c(site_od_full_pjor@sim$samples[[1]]$fit[(nb+1):ni], site_od_full_pjor@si
 
 fit_new <- c(site_od_full_pjor@sim$samples[[1]]$fit_new[(nb+1):ni], site_od_full_pjor@sim$samples[[2]]$fit_new[(nb+1):ni], site_od_full_pjor@sim$samples[[3]]$fit_new[(nb+1):ni]) # maybe do with lapply?
 
-mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS output
+mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS output - maybe because of summing with NA being handled differently
 
 foo <- as.data.frame(summary(site_od_full_pjor)$summary)
 foo$parameter <- rownames(summary(site_od_full_pjor)$summary)

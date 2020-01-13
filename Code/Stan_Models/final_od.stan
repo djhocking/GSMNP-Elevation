@@ -128,10 +128,12 @@ generated quantities {
   // vector[K + 1] log_lik;
   // matrix[N_ll, T] log_lik;
   real mean_abundance;
+  real mean_detection;
   real fit = 0;
   real fit_new = 0;
   matrix[R, T] p; 
-  matrix[R, T] p_vectorized;
+  // matrix[R, T] p_vectorized;
+  // matrix[R, T] p_test;
 
     matrix[R, T] eval;         // Expected values
     int y_new[R, T];
@@ -155,7 +157,7 @@ generated quantities {
      
   for (i in 1:R) {
      N[i] = poisson_log_rng(log_lambda[i]);
-     p_vectorized[i, 1:T] = inv_logit(logit_p[i, 1:T]);
+     p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
   }
   
   // Bayesian p-value fit
@@ -174,9 +176,9 @@ generated quantities {
     }
 
     for (i in 1:R) {
-      for (j in 1:T)
-      p[i, j] = inv_logit(logit_p[i, j]);
-      p_test[i, j] = p[i, j] - p_vectorized[i, j]
+    //   for (j in 1:T) {
+    //   p[i, j] = inv_logit(logit_p[i, j]);
+    //   p_test[i, j] = p[i, j] - p_vectorized[i, j];
 //         for (n in 0:(max_y[i] - 1))
 //           lp[n + 1] = negative_infinity();
 //         for (n in max_y[i]:K) {
@@ -184,7 +186,7 @@ generated quantities {
 //             + binomial_lpmf(y[i, 1:T] | n, p[i, 1:T]);
       //   }
       // 
-      // for (j in 1:T) {
+      for (j in 1:T) {
       // Assess model fit using Chi-squared discrepancy
       // Compute fit statistic E for observed data
       eval[i, j] = p[i, j] * N[i];
