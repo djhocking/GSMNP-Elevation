@@ -129,6 +129,7 @@ generated quantities {
   // matrix[N_ll, T] log_lik;
   real mean_abundance;
   real mean_detection;
+  vector[R] mean_p;
   real fit = 0;
   real fit_new = 0;
   matrix[R, T] p; 
@@ -137,6 +138,10 @@ generated quantities {
 
     matrix[R, T] eval;         // Expected values
     int y_new[R, T];
+    int y_post_check[R, T];
+    int y_new_sum[R];
+    int y_sum_diff[R];
+    matrix[R, T] y_diff;          // observed - expected
     matrix[R, T] E;
     matrix[R, T] E_new;
     //  matrix[T, 1] E[R];
@@ -186,6 +191,8 @@ generated quantities {
 //             + binomial_lpmf(y[i, 1:T] | n, p[i, 1:T]);
       //   }
       // 
+      mean_p[i] = mean(p[i]);
+      
       for (j in 1:T) {
       // Assess model fit using Chi-squared discrepancy
       // Compute fit statistic E for observed data
@@ -195,7 +202,12 @@ generated quantities {
       // Compute fit statistic E_new for replicate data
           y_new[i, j] = binomial_rng(N[i], p[i, j]);
           E_new[i, j] = square(y_new[i, j] - eval[i, j]) / (eval[i, j] + 0.5);
+          
+          y_diff[i, j] = y[i, j] - eval[i, j];  // vectorize later observed vs. fitted
+          y_post_check[i, j] = y[i, j] - y_new[i, j];
         }
+        y_new_sum[i] = sum(y_new[i]);
+        y_sum_diff[i] = sum(y[i]) - y_new_sum[i];
       }
     
    totalN = sum(N);  // Total pop. size across all sites
