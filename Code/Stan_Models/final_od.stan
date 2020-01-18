@@ -128,13 +128,20 @@ generated quantities {
   // vector[K + 1] log_lik;
   // matrix[N_ll, T] log_lik;
   real mean_abundance;
+  real mean_detection;
+  vector[R] mean_p;
   real fit = 0;
   real fit_new = 0;
   matrix[R, T] p; 
-  matrix[R, T] p_vectorized;
+  // matrix[R, T] p_vectorized;
+  // matrix[R, T] p_test;
 
     matrix[R, T] eval;         // Expected values
     int y_new[R, T];
+    int y_post_check[R, T];
+    int y_new_sum[R];
+    int y_sum_diff[R];
+    matrix[R, T] y_diff;          // observed - expected
     matrix[R, T] E;
     matrix[R, T] E_new;
     //  matrix[T, 1] E[R];
@@ -155,7 +162,7 @@ generated quantities {
      
   for (i in 1:R) {
      N[i] = poisson_log_rng(log_lambda[i]);
-     p_vectorized[i, 1:T] = inv_logit(logit_p[i, 1:T]);
+     p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
   }
   
   // Bayesian p-value fit
@@ -174,9 +181,9 @@ generated quantities {
     }
 
     for (i in 1:R) {
-      for (j in 1:T)
-      p[i, j] = inv_logit(logit_p[i, j]);
-      p_test[i, j] = p[i, j] - p_vectorized[i, j]
+    //   for (j in 1:T) {
+    //   p[i, j] = inv_logit(logit_p[i, j]);
+    //   p_test[i, j] = p[i, j] - p_vectorized[i, j];
 //         for (n in 0:(max_y[i] - 1))
 //           lp[n + 1] = negative_infinity();
 //         for (n in max_y[i]:K) {
@@ -184,7 +191,9 @@ generated quantities {
 //             + binomial_lpmf(y[i, 1:T] | n, p[i, 1:T]);
       //   }
       // 
-      // for (j in 1:T) {
+      mean_p[i] = mean(p[i]);
+      
+      for (j in 1:T) {
       // Assess model fit using Chi-squared discrepancy
       // Compute fit statistic E for observed data
       eval[i, j] = p[i, j] * N[i];
@@ -193,7 +202,12 @@ generated quantities {
       // Compute fit statistic E_new for replicate data
           y_new[i, j] = binomial_rng(N[i], p[i, j]);
           E_new[i, j] = square(y_new[i, j] - eval[i, j]) / (eval[i, j] + 0.5);
+          
+          y_diff[i, j] = y[i, j] - eval[i, j];  // vectorize later observed vs. fitted
+          y_post_check[i, j] = y[i, j] - y_new[i, j];
         }
+        y_new_sum[i] = sum(y_new[i]);
+        y_sum_diff[i] = sum(y[i]) - y_new_sum[i];
       }
     
    totalN = sum(N);  // Total pop. size across all sites
