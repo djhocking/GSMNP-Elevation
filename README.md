@@ -28,9 +28,14 @@ Our pre-print is online here:
 
 Please cite this compendium as:
 
-> Authors, (2020). *Compendium of R code and data for Elevational
-> distributions of salamanders in GSMNP*. Accessed 18 Jan 2020. Online
-> at <https://doi.org/xxx/xxx>
+> Hocking, D.J., C. Crawford, W.E. Peterman, and J.R. Milanovich,
+> (2020). *Compendium of R code and data for Elevational distributions
+> of salamanders in GSMNP*. Accessed 18 Jan 2020. Online at
+> <https://github.com/djhocking/GSMNP-Elevation>
+
+<!--
+Online at <https://doi.org/xxx/xxx>
+-->
 
 ### How to download or install
 
