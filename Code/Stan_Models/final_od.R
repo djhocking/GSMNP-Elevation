@@ -159,9 +159,8 @@ saveRDS(site_od_full_pjor, file = "Results/Stan/final_od_pjor_hmc.Rds")
 library(bayesplot)
 
 
-plot(site_od_full_pjor, par = "y_sum_diff")
 
-pairs(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p", "lp__"))
+
 
 list_of_draws <- extract(site_od_full_pjor)
 print(names(list_of_draws))
