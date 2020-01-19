@@ -9,7 +9,7 @@ library(rstan)
 library(dplyr)
 
 # Settings
-testing <- FALSE # settings to run quickly when testing model changes = TRUE
+testing <- TRUE # settings to run quickly when testing model changes = TRUE
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -93,13 +93,13 @@ if(testing) {
   ni = 200
   nt = 1
   nc <- 3
-  K = max(apply(PJOR5, MARGIN = 1, max)) + 1
+  K = apply(PJOR5, 1, max) + 10
 } else {
   nb = 1000
   ni = 1500
   nt = 4
   nc <- parallel::detectCores()
-  K = 500 # should go back to getting variable K code working even if more bookeeping - waiting massive time and resources on 90% of sites
+  K = as.integer((apply(PJOR5, 1, max)) / 0.1 + 10) # should go back to getting variable K code working even if more bookeeping - waiting massive time and resources on 90% of sites
 }
 
 ## Initial values
@@ -149,23 +149,15 @@ site_od_full_pjor <- stan("Code/Stan_Models/final_od.stan",
 if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
 saveRDS(site_od_full_pjor, file = "Results/Stan/final_od_pjor_hmc.Rds")
 
-# effective sample sizes (should be > 100) - Aki Vehtari, Andrew Gelman, Daniel Simpson, Bob Carpenter, and Paul-Christian Bürkner (2019). Rank-normalization, folding, and localization: An improved R-hat for assessing convergence of MCMC. arXiv preprint arXiv:1903.08008.
-mon <- monitor(site_od_full_pjor, warmup = nb)
-rstan:::print.simsummary(mon)
-# print(mon)
-# print(site_od_full_pjor)
-max(mon$Rhat)
-min(mon$Bulk_ESS)
-min(mon$Tail_ESS)
+
 
 # print(site_od_full_pjor, digits = 3)
 # print(site_od_full_pjor, pars = "p_test", digits = 3)
-plot(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6"))
-plot(site_od_full_pjor, par = c("y_diff"))
-traceplot(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_eps", "sd_p"))
+
+
 
 library(bayesplot)
-mcmc_trace(site_od_full_pjor, regex_pars = "N")
+
 
 plot(site_od_full_pjor, par = "y_sum_diff")
 
@@ -331,3 +323,7 @@ ppc_bars_grouped(y = y_long$value, yrep = y_new_mat, group = y_long$visit)
 
 # RMSE of posterior predictive
 sqrt(sum(((y_long$value - colMeans(y_new_mat))^2) / nrow(y_long)))
+
+#----- Cleanup -----
+
+rm(list = ls())
