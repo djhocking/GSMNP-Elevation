@@ -16,7 +16,7 @@ data {
   matrix[R, T] temp2;      // Covariate
   vector[R] gcover;      // Covariate
   vector[R] gcover2;      // Covariate
-  int<lower=0> K;       // Upper bound of population size
+  int<lower=0> K[R];       // Upper bound of population size
 }
 
 transformed data {
@@ -28,7 +28,7 @@ transformed data {
     max_y[i] = max(y[i]);
     
   for (i in 1:R) {
-    foo[i] = K - max_y[i] + 1;
+    foo[i] = K[i] - max_y[i] + 1;
 }
     N_ll = sum(foo);
 }
@@ -100,9 +100,9 @@ model {
   
     // Likelihood
   for (i in 1:R) {
-    vector[K - max_y[i] + 1] lp;
+    vector[K[i] - max_y[i] + 1] lp;
 
-    for (j in 1:(K - max_y[i] + 1))
+    for (j in 1:(K[i] - max_y[i] + 1))
       lp[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
              + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
     target += log_sum_exp(lp);
@@ -146,16 +146,16 @@ generated quantities {
     matrix[R, T] E_new;
     //  matrix[T, 1] E[R];
     // matrix[T, 1] E_new[R];
-    vector[K + 1] lp;
+   // vector[K + 1] lp;
     // matrix[K + 1, T] lp;
    // vector[50] log_lik;
   
     for (i in 1:R) {
-    vector[K - max_y[i] + 1] ll;
+     vector[K[i] - max_y[i] + 1] ll;
 
-    for (j in 1:(K - max_y[i] + 1)) {
-      ll[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
-             + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
+     for (j in 1:(K[i] - max_y[i] + 1)) {
+       ll[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
+              + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
     }
     log_lik[i] = log_sum_exp(ll); // for use in loo and multimodel comparison
   }
