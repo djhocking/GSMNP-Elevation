@@ -263,28 +263,13 @@ saveRDS(loo_od, file = "Results/Stan/site_od_full_pjor_loo.Rds")
 
 # Bayesian p-value check
 plot(site_od_full_pjor, par = c("fit", "fit_new"))
-
 pairs(site_od_full_pjor, pars = c("fit", "fit_new"))
 
-fit <- c(site_od_full_pjor@sim$samples[[1]]$fit[(nb+1):ni], site_od_full_pjor@sim$samples[[2]]$fit[(nb+1):ni], site_od_full_pjor@sim$samples[[3]]$fit[(nb+1):ni]) # maybe do with lapply?
+fit <- rstan::extract(site_od_full_pjor, par = "fit")[[1]]
+fit_new <- rstan::extract(site_od_full_pjor, par = "fit_new")[[1]]
+plot(fit, fit_new)
 
-fit_new <- c(site_od_full_pjor@sim$samples[[1]]$fit_new[(nb+1):ni], site_od_full_pjor@sim$samples[[2]]$fit_new[(nb+1):ni], site_od_full_pjor@sim$samples[[3]]$fit_new[(nb+1):ni]) # maybe do with lapply?
-
-mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS output - maybe because of summing with NA being handled differently
-
-foo <- as.data.frame(summary(site_od_full_pjor)$summary)
-foo$parameter <- rownames(summary(site_od_full_pjor)$summary)
-
-library(stringr)
-y_new_sum <- dplyr::filter(foo, str_detect(parameter, "y_new"))
-eval_sum <- dplyr::filter(foo, str_detect(parameter, "eval"))
-
-plot(as.numeric(unlist(PJOR5)), y_new_sum$mean)
-abline(a = 0, b = 1)
-
-plot(eval_sum$mean, y_new_sum$mean)
-abline(a = 0, b = 1)
-
+mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS output - especially in light of posterior predictive checks being great below
 
 #----- Posterior Predictive Checks -----
 library(tidyr)

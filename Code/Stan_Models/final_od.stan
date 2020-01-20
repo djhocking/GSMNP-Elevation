@@ -79,16 +79,16 @@ model {
   alpha5 ~ normal(0, 10);
   alpha6 ~ normal(0, 10);
   
-  beta0 ~ normal(0, 10);
-  beta1 ~ normal(0, 10);
-  beta2 ~ normal(0, 10);
-  beta3 ~ normal(0, 10);
-  beta4 ~ normal(0, 10);
-  beta5 ~ normal(0, 10);
-  beta6 ~ normal(0, 10);
+  beta0 ~ normal(0, 2);
+  beta1 ~ normal(0, 2);
+  beta2 ~ normal(0, 2);
+  beta3 ~ normal(0, 2);
+  beta4 ~ normal(0, 2);
+  beta5 ~ normal(0, 2);
+  beta6 ~ normal(0, 2);
 
   eps ~ normal(0, 1);
-  sd_eps ~ cauchy(0, 10);
+  sd_eps ~ cauchy(0, 2.5);
   
   for (i in 1:R) {
       for (t in 1:T) {
@@ -96,7 +96,7 @@ model {
       }
   }
   // delta ~ normal(0, 1);
-  sd_p ~ cauchy(0, 10);
+  sd_p ~ cauchy(0, 2.5); // even this might be more heavily tailed than we want on p. maybe half normal with sd = 3-5
   
     // Likelihood
   for (i in 1:R) {
@@ -138,10 +138,10 @@ generated quantities {
 
     matrix[R, T] eval;         // Expected values
     int y_new[R, T];
-    int y_post_check[R, T];
+    // int y_post_check[R, T];
     int y_new_sum[R];
-    int y_sum_diff[R];
-    matrix[R, T] y_diff;          // observed - expected
+    // int y_sum_diff[R];
+    // matrix[R, T] y_diff;          // observed - expected
     matrix[R, T] E;
     matrix[R, T] E_new;
     //  matrix[T, 1] E[R];
@@ -157,7 +157,7 @@ generated quantities {
       ll[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i])
              + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
     }
-    log_lik[i] = log_sum_exp(ll);
+    log_lik[i] = log_sum_exp(ll); // for use in loo and multimodel comparison
   }
      
   for (i in 1:R) {
@@ -165,7 +165,7 @@ generated quantities {
      p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
   }
   
-  // Bayesian p-value fit
+  // Bayesian p-value fit - not sure if it's not working. Diff than JAGS but all parameters the same. Not a great test anyway.
 
     // Initialize N, E and E_new
     // N = 0;
@@ -203,11 +203,11 @@ generated quantities {
           y_new[i, j] = binomial_rng(N[i], p[i, j]);
           E_new[i, j] = square(y_new[i, j] - eval[i, j]) / (eval[i, j] + 0.5);
           
-          y_diff[i, j] = y[i, j] - eval[i, j];  // vectorize later observed vs. fitted
-          y_post_check[i, j] = y[i, j] - y_new[i, j];
+          // y_diff[i, j] = y[i, j] - eval[i, j];  // vectorize later observed vs. fitted
+          // y_post_check[i, j] = y[i, j] - y_new[i, j];
         }
         y_new_sum[i] = sum(y_new[i]);
-        y_sum_diff[i] = sum(y[i]) - y_new_sum[i];
+        // y_sum_diff[i] = sum(y[i]) - y_new_sum[i];
       }
     
    totalN = sum(N);  // Total pop. size across all sites
