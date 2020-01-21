@@ -19,3 +19,4 @@ Results/Stan/
 *.txt
 Code/Jags_Models/*.txt
 Endnote*
+Data/Derived/

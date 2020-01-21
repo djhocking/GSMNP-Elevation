@@ -481,13 +481,53 @@ write.table(min.max.elev, file = "Results/min-max-elev.csv", sep = ",")
 
 #------------ save everything for use in models -----------
 
-if(!dir.exists("Data/Processed")) dir.create("Data/Processed", recursive = TRUE)
+if(!dir.exists("Data/Derived")) dir.create("Data/Derived", recursive = TRUE)
 
 n.sites <- length(unique(Data$site))
 n.sites == max(Data$site_num)
 
-save(Data, df, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJORmin, DWRI, DWRImin, EWIL, EWILmin,  file = "Data/Processed/jags_prep.RData")
-
-save.image("Data/Processed/jags_prep_image.RData")
+save(Data, df, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJORmin, DWRI, DWRImin, EWIL, EWILmin,  file = "Data/Derived/jags_prep.RData")
 
 
+
+## Remove missing observations for now
+summary(PJOR)
+PJOR5_na <- PJOR[ , 1:5]
+
+na_rows <- which(is.na(rowSums(PJOR5_na)))
+rows <- which(!is.na(rowSums(PJOR5_na)))
+PJOR5 <- PJOR5_na[which(!is.na(rowSums(PJOR5_na))), ]
+dim(PJOR5)
+summary(PJOR5)
+
+elev5 <- elev[rows]
+stream5 <- stream[rows]
+twi5 <- twi[rows]
+litter5 <- litterdepth[rows]
+
+RH5 <- RH.s[rows, 1:5]
+temp5 <- Temp.s[rows, 1:5]
+precip5 <- Precip.s[rows, 1:5]
+gcover5 <- gcover[rows]
+
+n.transects <- length(elev5)
+n.surveys <- ncol(PJOR5)
+
+Data5 <- Data[rows, ]
+Data5 <- Data5 %>%
+  arrange(site, transect)
+Data5$site_stan <- 99999
+Data5$site_stan[1] <- 1
+for(i in 2:n.transects) {
+  Data5$site_stan[i] <- ifelse(Data5$site[i] == Data5$site[i-1], Data5$site_stan[i-1], Data5$site_stan[i-1] + 1)
+}
+
+n.sites <- length(unique(Data5$site_stan))
+
+save(Data, Data5, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJOR5, elev5, stream5, twi5, litter5, RH5, temp5, precip5, gcover5, n.transects, n.surveys, n.sites,  file = "Data/Derived/stan_prep.RData")
+
+
+
+save.image("Data/Derived/prep_image.RData")
+
+rm(list = ls())

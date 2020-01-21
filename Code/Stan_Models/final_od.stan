@@ -60,9 +60,9 @@ transformed parameters {
   matrix[R, T] logit_p; // Logit detection probability
 
   for (i in 1:R) {
-  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha2 * elev2[i] + alpha3 * twi[i] + alpha4 * litter[i] + alpha5 * gcover[i] + alpha6 * stream[i] + eps[sites[i]] * sd_eps;
+  log_lambda[i] = alpha0 + alpha1 * elev[i] + alpha2 * elev2[i] + alpha3 * twi[i] + alpha4 * litter[i] + alpha5 * gcover[i] + alpha6 * stream[i] + eps[sites[i]] * sd_eps; // non-centered formulation of random effect (see Monnahan et al. 2017)
   for (t in 1:T) {
-  logit_p[i,t] = beta0 + beta1 * temp[i,t] + beta2 * temp2[i,t] + beta3 * precip[i,t] + beta4 * gcover[i] + beta5 * gcover2[i] + beta6 * RH[i,t] + delta[i, t] * sd_p;
+  logit_p[i,t] = beta0 + beta1 * temp[i,t] + beta2 * temp2[i,t] + beta3 * precip[i,t] + beta4 * gcover[i] + beta5 * gcover2[i] + beta6 * RH[i,t] + delta[i, t] * sd_p; // non-centered formulation
   }
 }
 }
