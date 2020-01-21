@@ -1,5 +1,5 @@
 ############################################
-# Script for checking MCMC/HMC diagnostics
+# Script for checking MCMC/HMC diagnostics - this might be better as an Rmd to just have one output for supplemental publication
 ############################################
 
 #----- Load Libraries ------
@@ -17,6 +17,7 @@ library(bayesplot)
 
 #----- Load Data and Results -----
 
+load("Data/Derived/stan_prep.RData")
 site_od_full_pjor <- readRDS(file = "Results/Stan/final_od_pjor_hmc.Rds")
 
 #----- View Traceplots (consider alt. see Simpson/Aki comments) -----
@@ -28,42 +29,70 @@ traceplot(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "al
 # mcmc_trace(site_od_full_pjor, regex_pars = "alpha")
 # mcmc_trace(site_od_full_pjor, regex_pars = "N") # too many for one plot
 
+#----- Check Domain Specific Expectations -----
+
+# Check N for Truncation 
+
+# The augmentation to marginalize N out as a latent discrete requires setting an upper bound, K, to loop through. If K is too small the posterior will be truncated. Need to check for every N.
+
+# Could also set K to be so high that any truncation is either a hard prior or that the probability of detection (p) is below 10% and therefore the N-mixture model is not appopriate for those sites.
+
+# Too many N for one plot layout so need to separate into chunks of 16 - 24
+
+N_min <- apply(PJOR5, 1, max) # max caught on any day, so know true N is at least that large
+
+N <- rep(NA_character_, 159)
+for(i in 1:159) {
+  N[i] <- paste0("N[", i, "]")
+}
+
+n <- 25
+
+for(i in 1:(ceiling(159 / n))) {
+  k <- min(i*n, 159)
+  j <- k - n
+  hists <- mcmc_hist(site_od_full_pjor, pars= N[j:k], binwidth = 1)
+  ggsave(hists, file = paste0("Results/Stan/pjor_N_hist", i, ".pdf"))
+  print(hists)
+}
+
+# mcmc_dens(site_od_full_pjor, pars = c("N[100]", "N[120]"))
+
+# check detection
+# In simulations abundance esimates are unreliable unless detection > 0.20
+
+mcmc_dens(site_od_full_pjor, pars = c("mean_detection"))
+
 #----- Check Divergences and Pairwise Correlations -----
 
 check_divergences(site_od_full_pjor)
 
 color_scheme_set("darkgray")
-mcmc_scatter(
-  as.matrix(site_od_full_pjor),
-  pars = c("y_diff[1,1]", "y_diff[1,2]"), 
-  np = nuts_params(site_od_full_pjor), 
-  np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
-)
+# mcmc_scatter(
+#   as.matrix(site_od_full_pjor),
+#   pars = c("fit", "fit_new"), 
+#   np = nuts_params(site_od_full_pjor), 
+#   np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
+# )
 
-mcmc_scatter(
-  as.matrix(site_od_full_pjor),
-  pars = c("fit", "fit_new"), 
-  np = nuts_params(site_od_full_pjor), 
-  np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
-)
+# mcmc_scatter(
+#   as.matrix(site_od_full_pjor),
+#   pars = c("eval[1,1]", "y_new[1,1]"), 
+#   np = nuts_params(site_od_full_pjor), 
+#   np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
+# )
 
-mcmc_scatter(
-  as.matrix(site_od_full_pjor),
-  pars = c("eval[1,1]", "y_new[1,1]"), 
-  np = nuts_params(site_od_full_pjor), 
-  np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
-)
-
+# look at variance terms because usually the hardest to fit
 color_scheme_set("darkgray")
 mcmc_scatter(
-  as.matrix(site_od_full_pjor),
+  site_od_full_pjor,
   pars = c("sd_eps", "sd_p"), 
   np = nuts_params(site_od_full_pjor), 
   np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
 )
 
 mcmc_pairs(
-  as.matrix(site_od_full_pjor),
+  site_od_full_pjor,
   pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p"), 
   np = nuts_params(site_od_full_pjor), 
   np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
@@ -98,7 +127,7 @@ pairs(site_od_full_pjor, pars = c("fit", "fit_new"))
 
 fit <- rstan::extract(site_od_full_pjor, par = "fit")[[1]]
 fit_new <- rstan::extract(site_od_full_pjor, par = "fit_new")[[1]]
-plot(fit, fit_new)
+# plot(fit, fit_new)
 
 mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS output - especially in light of posterior predictive checks being great below
 
@@ -117,7 +146,7 @@ sqrt(sum(((y_sum$y_sum - colMeans(y_sum_new[[1]]))^2) / nrow(y_sum)))
 # Posterior predictive check for each visit
 y_long <- PJOR5 %>%
   mutate(site = rownames(.)) %>%
-  pivot_longer(starts_with("P"),
+  pivot_longer(starts_with("PJOR"),
                names_to = "visit",
                names_prefix = "PJOR")
 
@@ -134,6 +163,9 @@ for(i in 1:dim(y_new)[1]) {
   y_new_mat[i, ] <- y_new_long$value
 }
 
+# RMSE of posterior predictive for observations per visit
+sqrt(sum(((y_long$value - colMeans(y_new_mat))^2) / nrow(y_sum)))
+
 ppc_scatter_avg(y = y_long$value, yrep = y_new_mat, alpha = 0.3)
 
 ppc_rootogram(y = y_long$value, yrep = y_new_mat, style = "standing")
@@ -148,6 +180,7 @@ sqrt(sum(((y_long$value - colMeans(y_new_mat))^2) / nrow(y_long)))
 
 
 #----- Prior vs. Postior Distributions -----
+
 
 
 

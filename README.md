@@ -12,17 +12,20 @@ This repository contains the data and code for our paper:
 
 Our pre-print is online here:
 
-> Authors, (YYYY). _Elevational distributions of salamanders in GSMNP_. Name of journal/book, Accessed 18 Jan 2020. Online at <https://doi.org/xxx/xxx>
+> Authors, (YYYY). _Elevational distributions of salamanders in GSMNP_. Name of journal/book, Accessed 21 Jan 2020. Online at <https://doi.org/xxx/xxx>
 -->
 
 ## Run models
 
+In the `Code/` directory.
+
 1.  `prep_data.R`
-2.  `final_od.R` or `site_od_full_varK.R` (Opt: other models for model
-    comparison)
-3.  `check_sims.R` (coming soon)
-4.  `compare_models.R` (optional)
-5.  `summarize.R` (coming soon)
+2.  `set_conditions.R`
+3.  `Stan_Models/final_od.R` - `Stan_Models/final_od.stan` (Optional:
+    other models for model comparison)
+4.  `check_sims.R`
+5.  `compare_models.R` (Optional)
+6.  `summarize.R` (under development)
 
 ### How to cite
 
@@ -30,7 +33,7 @@ Please cite this compendium as:
 
 > Hocking, D.J., C. Crawford, W.E. Peterman, and J.R. Milanovich,
 > (2020). *Compendium of R code and data for Elevational distributions
-> of salamanders in GSMNP*. Accessed 18 Jan 2020. Online at
+> of salamanders in GSMNP*. Accessed 21 Jan 2020. Online at
 > <https://github.com/djhocking/GSMNP-Elevation>
 
 <!--

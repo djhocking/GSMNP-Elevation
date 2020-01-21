@@ -30,11 +30,14 @@ Our pre-print is online here:
 
 ## Run models
 
+In the `Code/` directory.
+
 1. `prep_data.R`
-2. `final_od.R` or `site_od_full_varK.R` (Opt: other models for model comparison)
-3. `check_sims.R` (coming soon)
-4. `compare_models.R` (optional)
-5. `summarize.R` (coming soon)
+2. `set_conditions.R`
+3. `Stan_Models/final_od.R` - `Stan_Models/final_od.stan` (Optional: other models for model comparison)
+3. `check_sims.R` 
+4. `compare_models.R` (Optional)
+5. `summarize.R` (under development)
 
 ### How to cite
 

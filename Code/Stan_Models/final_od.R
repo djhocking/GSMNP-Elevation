@@ -16,7 +16,7 @@ options(mc.cores = parallel::detectCores())
 load(file = "Data/Derived/settings.RData")
 
 ## Read data
-load("Data/Processed/stan_prep.RData")
+load("Data/Derived/stan_prep.RData")
 
 
 ## Parameters monitored
@@ -92,7 +92,7 @@ site_od_full_pjor <- stan("Code/Stan_Models/final_od.stan",
                                       RH = RH5,
                                       temp = temp5,
                                       temp2 = temp5^2,
-                                      K = K),
+                                      K = K_pjor),
                           init = inits,
                           pars = params,
                           chains = nc, iter = ni, warmup = nb, thin = nt,
@@ -105,14 +105,68 @@ saveRDS(site_od_full_pjor, file = "Results/Stan/final_od_pjor_hmc.Rds")
 
 
 
-# print(site_od_full_pjor, digits = 3)
-# print(site_od_full_pjor, pars = "p_test", digits = 3)
 
 
+#----- EWIL -----
 
-library(bayesplot)
+site_od_full_ewil <- stan("Code/Stan_Models/final_od.stan",
+                          data = list(y = EWIL5, 
+                                      R = nrow(EWIL5), 
+                                      T = ncol(EWIL5), 
+                                      nsites = n.sites,
+                                      sites = Data5$site_stan,
+                                      elev = elev5,
+                                      elev2 = elev5^2,
+                                      litter = litter5,
+                                      twi = twi5,
+                                      precip = precip5,
+                                      stream = stream5,
+                                      # stream2 = stream5 * stream5,
+                                      gcover = gcover5,
+                                      gcover2 = gcover5^2,
+                                      RH = RH5,
+                                      temp = temp5,
+                                      temp2 = temp5^2,
+                                      K = K_ewil),
+                          init = inits,
+                          pars = params,
+                          chains = nc, iter = ni, warmup = nb, thin = nt,
+                          # seed = 1,
+                          open_progress = FALSE, 
+                          verbose = TRUE)
+
+saveRDS(site_od_full_ewil, file = "Results/Stan/final_od_ewil_hmc.Rds")
 
 
+#----- DWRI -----
+
+site_od_full_dwri <- stan("Code/Stan_Models/final_od.stan",
+                          data = list(y = DWRI5, 
+                                      R = nrow(DWRI5), 
+                                      T = ncol(DWRI5), 
+                                      nsites = n.sites,
+                                      sites = Data5$site_stan,
+                                      elev = elev5,
+                                      elev2 = elev5^2,
+                                      litter = litter5,
+                                      twi = twi5,
+                                      precip = precip5,
+                                      stream = stream5,
+                                      # stream2 = stream5 * stream5,
+                                      gcover = gcover5,
+                                      gcover2 = gcover5^2,
+                                      RH = RH5,
+                                      temp = temp5,
+                                      temp2 = temp5^2,
+                                      K = K_dwri),
+                          init = inits,
+                          pars = params,
+                          chains = nc, iter = ni, warmup = nb, thin = nt,
+                          # seed = 1,
+                          open_progress = FALSE, 
+                          verbose = TRUE)
+
+saveRDS(site_od_full_dwri, file = "Results/Stan/final_od_dwri_hmc.Rds")
 
 
 
@@ -149,3 +203,4 @@ saveRDS(loo_od, file = "Results/Stan/site_od_full_pjor_loo.Rds")
 #----- Cleanup -----
 
 rm(list = ls())
+

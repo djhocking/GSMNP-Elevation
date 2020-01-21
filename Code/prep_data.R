@@ -500,6 +500,9 @@ PJOR5 <- PJOR5_na[which(!is.na(rowSums(PJOR5_na))), ]
 dim(PJOR5)
 summary(PJOR5)
 
+EWIL5 <- EWIL[rows, 1:5]
+DWRI5 <- DWRI[rows, 1:5]
+
 elev5 <- elev[rows]
 stream5 <- stream[rows]
 twi5 <- twi[rows]
@@ -524,7 +527,7 @@ for(i in 2:n.transects) {
 
 n.sites <- length(unique(Data5$site_stan))
 
-save(Data, Data5, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJOR5, elev5, stream5, twi5, litter5, RH5, temp5, precip5, gcover5, n.transects, n.surveys, n.sites,  file = "Data/Derived/stan_prep.RData")
+save(Data, Data5, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJOR5, EWIL5, DWRI5, elev5, stream5, twi5, litter5, RH5, temp5, precip5, gcover5, n.transects, n.surveys, n.sites,  file = "Data/Derived/stan_prep.RData")
 
 
 
