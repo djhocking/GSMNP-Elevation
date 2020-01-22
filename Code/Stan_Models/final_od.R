@@ -20,7 +20,7 @@ load("Data/Derived/stan_prep.RData")
 
 
 ## Parameters monitored
-params <- c("totalN", 
+params <- c("N_total", 
             "alpha0", 
             "alpha1", 
             "alpha2",
@@ -73,42 +73,9 @@ inits <- lapply(1:nc, function(i)
        sd_eps = runif(1, 0, 1)))
 
 ## Call Stan from R
-if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-site_od_full_pjor <- stan("Code/Stan_Models/final_od.stan",
-                          data = list(y = PJOR5, 
-                                      R = nrow(PJOR5), 
-                                      T = ncol(PJOR5), 
-                                      nsites = n.sites,
-                                      sites = Data5$site_stan,
-                                      elev = elev5,
-                                      elev2 = elev5^2,
-                                      litter = litter5,
-                                      twi = twi5,
-                                      precip = precip5,
-                                      stream = stream5,
-                                      # stream2 = stream5 * stream5,
-                                      gcover = gcover5,
-                                      gcover2 = gcover5^2,
-                                      RH = RH5,
-                                      temp = temp5,
-                                      temp2 = temp5^2,
-                                      K = K_pjor),
-                          init = inits,
-                          pars = params,
-                          chains = nc, iter = ni, warmup = nb, thin = nt,
-                          # seed = 1,
-                          open_progress = FALSE, 
-                          verbose = TRUE)
-
-if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
-saveRDS(site_od_full_pjor, file = "Results/Stan/final_od_pjor_hmc.Rds")
-
-
-
-
 
 #----- EWIL -----
-
+if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
 site_od_full_ewil <- stan("Code/Stan_Models/final_od.stan",
                           data = list(y = EWIL5, 
                                       R = nrow(EWIL5), 
@@ -135,6 +102,7 @@ site_od_full_ewil <- stan("Code/Stan_Models/final_od.stan",
                           open_progress = FALSE, 
                           verbose = TRUE)
 
+if(!dir.exists("Results/Stan")) dir.create("Results/Stan", recursive = TRUE)
 saveRDS(site_od_full_ewil, file = "Results/Stan/final_od_ewil_hmc.Rds")
 
 
@@ -169,11 +137,36 @@ site_od_full_dwri <- stan("Code/Stan_Models/final_od.stan",
 saveRDS(site_od_full_dwri, file = "Results/Stan/final_od_dwri_hmc.Rds")
 
 
+#----- PJOR -----
 
+site_od_full_pjor <- stan("Code/Stan_Models/final_od.stan",
+                          data = list(y = PJOR5, 
+                                      R = nrow(PJOR5), 
+                                      T = ncol(PJOR5), 
+                                      nsites = n.sites,
+                                      sites = Data5$site_stan,
+                                      elev = elev5,
+                                      elev2 = elev5^2,
+                                      litter = litter5,
+                                      twi = twi5,
+                                      precip = precip5,
+                                      stream = stream5,
+                                      # stream2 = stream5 * stream5,
+                                      gcover = gcover5,
+                                      gcover2 = gcover5^2,
+                                      RH = RH5,
+                                      temp = temp5,
+                                      temp2 = temp5^2,
+                                      K = K_pjor),
+                          init = inits,
+                          pars = params,
+                          chains = nc, iter = ni, warmup = nb, thin = nt,
+                          # seed = 1,
+                          open_progress = FALSE, 
+                          verbose = TRUE)
+saveRDS(site_od_full_pjor, file = "Results/Stan/final_od_pjor_hmc.Rds")
 
-
-
-
+#---- Leftovers -----
 
 # print(site_od_full_pjor, par = "log_lik", digits = 2)
 
@@ -196,9 +189,6 @@ print(psis_od)
 
 loo_od <- list(loo = loo_od, psis = psis_od, r_eff = r_eff)
 saveRDS(loo_od, file = "Results/Stan/site_od_full_pjor_loo.Rds")
-
-
-
 
 #----- Cleanup -----
 

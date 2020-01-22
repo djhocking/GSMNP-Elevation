@@ -109,8 +109,8 @@ model {
 
 generated quantities {
   int<lower=0> N[R];                  // Abundance (must be at least max_y)
-  int<lower=0> N_rng[R];              // Abundance proposed by random draw from lambda
-  int totalN;
+  // int<lower=0> N_rng[R];              // Abundance proposed by random draw from lambda
+  int N_total;
   vector[R] log_lik;
   real mean_abundance;
   real mean_detection;
@@ -118,14 +118,15 @@ generated quantities {
   real fit = 0;
   real fit_new = 0;
   matrix[R, T] p; 
-  
   matrix[R, T] eval;         // Expected values
   int y_new[R, T];
   int y_new_sum[R];
   matrix[R, T] E;
   matrix[R, T] E_new;
+  int counter[R];
   
   for (i in 1:R) {
+    // calculate vector logliklihood for use in loo for model comparison
     vector[K[i] - max_y[i] + 1] ll;
     
     for (j in 1:(K[i] - max_y[i] + 1)) {
@@ -133,16 +134,15 @@ generated quantities {
       + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
     }
     log_lik[i] = log_sum_exp(ll); // for use in loo and multimodel comparison
-  }
-  
-  for (i in 1:R) {
-    N_rng[i] = poisson_log_rng(log_lambda[i]);
-    
-    // Restrict N to be at least as big as the number of animals observed on a single night
-    if(N_rng[i] < max_y[i]) 
-      N[i] = max_y[i];
-    else
-      N[i] = N_rng[i];
+
+    // Calculate Abundance - Restrict N to be at least as big as the number of animals observed on a single night
+      N[i] = poisson_log_rng(log_lambda[i]);
+      counter[i] = 0;
+      while (N[i] < max_y[i]) {
+        N[i] = poisson_log_rng(log_lambda[i]);
+        counter[i] += 1;
+        if (counter[i] > 100) break;
+      }
       
     p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
   }
@@ -175,13 +175,11 @@ generated quantities {
       E_new[i, j] = square(y_new[i, j] - eval[i, j]) / (eval[i, j] + 0.5);
     }
     y_new_sum[i] = sum(y_new[i]);
-  }
-  
-  totalN = sum(N);  // Total pop. size across all sites
-  for (i in 1:R) {
     fit = fit + sum(E[i]);
     fit_new = fit_new + sum(E_new[i]);
   }
+  
+  N_total = sum(N);  // Total pop. size across all sites
   mean_abundance = exp(alpha0);
-  mean_detection = 1 / (1 + exp(-1 * alpha0));
+  mean_detection = 1 / (1 + exp(-1 * beta0));
 }
