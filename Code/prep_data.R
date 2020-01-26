@@ -397,7 +397,7 @@ pairs(select(df, -transect, -site, -Lat, -Long, -elev_bin, -lon, -lat, -trail), 
 
 #----------- remove NA in independent variables -------------
 
-impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE)) # should be a problem since no data in these dependent variables either
+impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE)) # shouldn't be a problem since no data in these dependent variables either
 Temp.s <- impute.mean(Temp.s)
 RH.s <- impute.mean(RH.s)
 Precip.s <- impute.mean(Precip.s)

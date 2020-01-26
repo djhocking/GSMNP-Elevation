@@ -180,13 +180,13 @@ plot_elev <- function(fit, pars = c("alpha0", "alpha1", "alpha2"), data = Data, 
   expect <- matrix(NA_real_, length(samples$alpha0), length.out)
   if(is.null(range)) range <- base::range(Data$elev)
   x <- seq(min, max, length.out = length.out)
-  xs <- (elevation - mean(Data$elev)) / sd(Data$elev)
+  xs <- (x - mean(Data$elev)) / sd(Data$elev)
   
   for(i in 1:length.out) {
     expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * xs[i] + samples[[pars[3]]] *  xs[i]^2)
   }
   quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
-  quants_df <- data.frame(elevation, quants)
+  quants_df <- data.frame(x, quants)
   colnames(quants_df) <- c("Elevation", "LCRI", "Median", "UCRI")
   
   gg <- ggplot(quants_df, aes(Elevation, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Elevation (m)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
@@ -279,6 +279,50 @@ gg_N
 
 
 # same thing for detection
+plot_cond <- function(fit, var = "elev", pars = c("alpha0", "alpha1", "alpha2"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95), link = "log") {
+  samples <- rstan::extract(fit, pars = pars)
+  lexpect <- matrix(NA_real_, length(samples[[1]]), length.out)
+  if(is.null(range)) range <- base::range(as.matrix(Data[ , var]), na.rm = TRUE)
+  x <- seq(range[1], range[2], length.out = length.out)
+  xs <- (x - mean(as.matrix(Data[ , var]), na.rm = TRUE)) / sd(as.matrix(Data[ , var]), na.rm = TRUE)
+  
+  for(i in 1:length.out) {
+    lexpect[ , i] <- samples[[pars[1]]] + samples[[pars[2]]] * xs[i] 
+    if(length(pars) == 3) lexpect[ , i] <- lexpect[ , i] + samples[[pars[3]]] *  xs[i]^2
+  }
+  expect <- switch(link,
+                   log = exp(lexpect),
+                   logit = exp(lexpect) / (1 + exp(lexpect)))
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(x, quants)
+  colnames(quants_df) <- c("X", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(X, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  return(gg)
+}
+
+plot_lin <- function(fit, var = "elev", pars = c("alpha0", "alpha6"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+  samples <- rstan::extract(fit, pars = pars)
+  expect <- matrix(NA_real_, length(samples[[1]]), length.out)
+  if(is.null(range)) range <- base::range(Data[ , var], na.rm = TRUE)
+  x <- seq(range[1], range[2], length.out = length.out)
+  x_s <- (x - mean(as.matrix(Data[ , var]), na.rm = TRUE)) / sd(as.matrix(Data[ , var]), na.rm = TRUE)
+  
+  for(i in 1:length.out) {
+    expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * x_s[i])
+  }
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(x, quants)
+  colnames(quants_df) <- c("X", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(X, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  return(gg)
+}
+
+detection_labels <- c("Intercept", "Temperature", expression(Temperature^2), "Precip-24h", "Herbaceous", expression(Herbaceous^2), "Rel-Humidity")
+
+plot_cond(site_od_full_pjor, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Probability of detection")
+plot_cond(site_od_full_pjor, var = c("precip1", "precip2", "precip3", "precip4", "precip5", "precip6"), pars = c("beta0", "beta3"), link = "logit") + xlab("Precipitation in past 24-hr (mm)") + ylab("Probability of detection")
 
 
 #----- EWIL -----

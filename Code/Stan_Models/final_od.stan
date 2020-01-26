@@ -114,7 +114,8 @@ generated quantities {
   vector[R] log_lik;
   real mean_abundance;
   real mean_detection;
-  vector[R] mean_p;
+  real mean_p;
+  vector[R] mean_p_site;
   real fit = 0;
   real fit_new = 0;
   matrix[R, T] p; 
@@ -162,7 +163,7 @@ generated quantities {
   }
   
   for (i in 1:R) {
-    mean_p[i] = mean(p[i]);
+    mean_p_site[i] = mean(p[i]);
     
     for (j in 1:T) {
       // Assess model fit using Chi-squared discrepancy
@@ -182,4 +183,5 @@ generated quantities {
   N_total = sum(N);  // Total pop. size across all sites
   mean_abundance = exp(alpha0);
   mean_detection = 1 / (1 + exp(-1 * beta0));
+  mean_p = mean(p);
 }
