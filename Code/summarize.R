@@ -96,40 +96,43 @@ N_labels <- c("Intercept", "Elevation", expression(Elevation^2), "TWI", "Litter"
 
 sims_mat <- as.matrix(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N")) 
  
-mcmc_intervals(sims_mat, regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + rstan:::rstanvis_multiparam_theme()
+# mcmc_intervals(sims_mat, regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + rstan:::rstanvis_multiparam_theme()
 mcmc_intervals(sims_mat, regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + theme_bw_journal()
 mcmc_areas(sims_mat, area_method = "scaled height", prob = 0.5, prob_outer = 0.95, point_est = "median", regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + theme_bw_journal()
 
 # stan_plot(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6")) + scale_y_discrete(labels = N_labels)
 
+mcmc_intervals(sims_mat, regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal()
+mcmc_areas(sims_mat, area_method = "scaled height", prob = 0.5, prob_outer = 0.95, point_est = "median", regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal()
 
 
 
-Quants.pjor <- apply(sims_mat[ , c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps")], 2, FUN = quantile, probs = c(0.025, 0.5, 0.975))
-
-Means.pjor <- apply(sims_mat[ , c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps")], 2, FUN = mean)
-
-SDs.pjor <- apply(sims_mat[ , c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps")], 2, FUN = sd)
-
-pjor.variables <- c("N-intercept", "Elevation", "Elevation^2", "TWI", "Litter Depth", "Ground Cover", "Stream Distance", "Site SD", "p-intercept", "Temperature", "Temperature^2", "24-hr Precip", "Ground Cover", "Ground Cover^2", "Rel. Humidity", "Detection SD", "Fit-Data", "Fit-Ideal")
-
-pjor.summary <- data.frame(pjor.variables, Means.pjor, SDs.pjor, Quants.pjor["2.5%", ], Quants.pjor["50%", ], Quants.pjor["97.5%", ])
-
-colnames(pjor.summary) <- c("Variable", "Mean", "SD", "2.5%", "Median", "97.5%")
-
-write.table(pjor.summary, file = "Results/JAGS/pjor_summary.csv", sep = ",", col.names = NA, row.names = TRUE)
-
-N.pjor <- matrix(NA, 195, 5)
-N.eff <- rep(NA, times = 195)
-for(i in 1:195){
-  N.pjor[i, ] <- apply(as.matrix(pjor_od2[, c(paste("N[", i, "]", sep = ""))]), 2, FUN= quantile, probs = c(0.025, 0.1,  0.5, 0.9, 0.975))
-  
-  N.eff[i] <- effectiveSize(x=pjor_od2[ , c(paste("N[", i, "]", sep = ""))])
-}
-
-colnames(N.pjor) <- c("CRI_2.5", "CRI_10", "Median", "CRI_90", "CRI_97.5")
-N.pjor
-cbind(PJORmin, N.pjor)
+# Quants.pjor <- apply(sims_mat[ , c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps")], 2, FUN = quantile, probs = c(0.025, 0.5, 0.975))
+# 
+# Means.pjor <- apply(sims_mat[ , c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps")], 2, FUN = mean)
+# 
+# SDs.pjor <- apply(sims_mat[ , c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps")], 2, FUN = sd)
+# 
+# pjor.variables <- c("N-intercept", "Elevation", "Elevation^2", "TWI", "Litter Depth", "Ground Cover", "Stream Distance", "Site SD", "p-intercept", "Temperature", "Temperature^2", "24-hr Precip", "Ground Cover", "Ground Cover^2", "Rel. Humidity", "Detection SD", "Fit-Data", "Fit-Ideal")
+# 
+# pjor.summary <- data.frame(pjor.variables, Means.pjor, SDs.pjor, Quants.pjor["2.5%", ], Quants.pjor["50%", ], Quants.pjor["97.5%", ])
+# 
+# colnames(pjor.summary) <- c("Variable", "Mean", "SD", "2.5%", "Median", "97.5%")
+# 
+# write.table(pjor.summary, file = "Results/JAGS/pjor_summary.csv", sep = ",", col.names = NA, row.names = TRUE)
+# 
+# N.pjor <- matrix(NA, 159, 5)
+# N.eff <- rep(NA, times = 159)
+# for(i in 1:159){
+#   # N.pjor[i, ] <- apply(sims_mat[, c(paste("N[", i, "]", sep = ""))], 1, FUN= quantile, probs = c(0.025, 0.1,  0.5, 0.9, 0.975))
+#   N.pjor[i, ] <- quantile(sims_mat[, c(paste("N[", i, "]", sep = ""))], probs = c(0.025, 0.1,  0.5, 0.9, 0.975))
+#   
+#   # N.eff[i] <- effectiveSize(x=pjor_od2[ , c(paste("N[", i, "]", sep = ""))])
+# }
+# 
+# colnames(N.pjor) <- c("CRI_2.5", "CRI_10", "Median", "CRI_90", "CRI_97.5")
+# N.pjor
+# cbind(PJORmin, N.pjor)
 
 
 
@@ -138,38 +141,182 @@ cbind(PJORmin, N.pjor)
 
 
 # combine chains into one for summarizing and plotting
-fit_pjor <- as.data.frame(do.call(rbind, pjor_od2))
+# fit_pjor <- as.data.frame(do.call(rbind, pjor_od2))
 
 
-samples <- rstan::extract(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N"))
+samples <- rstan::extract(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N"))
 hist(samples$alpha0)
 
 # Effect of Beta1 - elevation
-elevation <- seq(450, 2025, length.out = 2000)
-elevation_s <- (elevation - mean(Data$elev)) / sd(Data$elev)
 
-N_hat_pjor <- matrix(NA, length(samples$alpha0), length(elevation_s))
-for(i in 1:length(samples$alpha0)) {
-  N_hat_pjor[i, ] <- exp(samples$alpha0[i] + samples$alpha1[i] * elevation_s + samples$alpha2[i] * elevation_s * elevation_s)
+# s = extracted samples from rstan::extract
+# pars = the parameter name or vector of parameter names  - need to include intercept - or jut go to design matrix setup - check pred for glm or lme4
+# data = original data used for standardization
+
+# fit = site_od_full_pjor
+# data = Data$elev
+# par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6")
+# link = "log"
+# data_new
+
+# plot_eff <- function(fit, pars, data, data_new, link) {
+#   if(!(link %in% c("log", "logit"))) stop("link only currently defined for log and logit")
+#   
+#   x <- range(data, na.rm = TRUE)
+#   xs <- as.numeric(scale(data_new))
+#   
+#   samples <- rstan::extract(fit, par = par)
+#   
+#   lin_pred
+#   
+#   switch(link,
+#          log = exp(lin_pred),
+#          logit = exp(lin_pred) / (1 + exp(lin_pred)))
+#   
+# }
+
+plot_elev <- function(fit, pars = c("alpha0", "alpha1", "alpha2"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+  samples <- rstan::extract(fit, pars = pars)
+  expect <- matrix(NA_real_, length(samples$alpha0), length.out)
+  if(is.null(range)) range <- base::range(Data$elev)
+  x <- seq(min, max, length.out = length.out)
+  xs <- (elevation - mean(Data$elev)) / sd(Data$elev)
+  
+  for(i in 1:length.out) {
+    expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * xs[i] + samples[[pars[3]]] *  xs[i]^2)
+  }
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(elevation, quants)
+  colnames(quants_df) <- c("Elevation", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(Elevation, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Elevation (m)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+return(gg)
 }
-quants <- t(apply(as.matrix(N_hat_pjor), 2, FUN = stats::quantile, probs = c(0.025, 0.5, 0.975)))
-quants_df <- data.frame(elevation, quants)
-colnames(quants_df) <- c("Elevation", "LCRI", "Median", "UCRI")
 
-PJORmin <- apply(PJOR5, 1, max) 
+plot_stream <- function(fit, pars = c("alpha0", "alpha6"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+  samples <- rstan::extract(fit, pars = pars)
+  expect <- matrix(NA_real_, length(samples$alpha0), length.out)
+  if(is.null(range)) range <- base::range(Data$strm_dist)
+  x <- seq(range[1], range[2], length.out = length.out)
+  x_s <- (x - mean(Data$strm_dist)) / sd(Data$strm_dist)
+  
+  for(i in 1:length.out) {
+    expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * x_s[i])
+  }
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(x, quants)
+  colnames(quants_df) <- c("x", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(x, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Stream distance (m)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  return(gg)
+}
 
-N_pjor <- data.frame(summary(site_od_full_pjor, digits = 3, par = c("N"))$summary)
-colnames(N_pjor) <- c("mean", "se_mean", "sd", "q2.5", "q25", "Median", "q75", "q97.5", "n_eff", "Rhat")
+plot_herb <- function(fit, pars = c("alpha0", "alpha5"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+  samples <- rstan::extract(fit, pars = pars)
+  expect <- matrix(NA_real_, length(samples$alpha0), length.out)
+  if(is.null(range)) range <- base::range(Data$gcover, na.rm = TRUE)
+  x <- seq(range[1], range[2], length.out = length.out)
+  x_s <- (x - mean(Data$gcover, na.rm = TRUE)) / sd(Data$gcover, na.rm = TRUE)
+  
+  for(i in 1:length.out) {
+    expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * x_s[i])
+  }
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(x, quants)
+  colnames(quants_df) <- c("x", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(x, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Herbeceous ground cover (%)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  return(gg)
+}
 
-N_elev <- data.frame(Elevation = Data5$elev, N_pjor, PJORmin) # not sure if these line up the elevations correctly
+plot_litter <- function(fit, pars = c("alpha0", "alpha4"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+  samples <- rstan::extract(fit, pars = pars)
+  expect <- matrix(NA_real_, length(samples$alpha0), length.out)
+  if(is.null(range)) range <- base::range(Data$litdepth)
+  x <- seq(range[1], range[2], length.out = length.out)
+  x_s <- (x - mean(Data$litdepth)) / sd(Data$litdepth)
+  
+  for(i in 1:length.out) {
+    expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * x_s[i])
+  }
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(x, quants)
+  colnames(quants_df) <- c("x", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(x, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Litter depth (mm)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  return(gg)
+}
 
-gg_elev <- ggplot(quants_df, aes(Elevation, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance")  # + ggtitle(expression(paste(italic("Pethodon jordani")))) # 
+plot_twi <- function(fit, pars = c("alpha0", "alpha3"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+  samples <- rstan::extract(fit, pars = pars)
+  expect <- matrix(NA_real_, length(samples$alpha0), length.out)
+  if(is.null(range)) range <- base::range(Data$twi_10)
+  x <- seq(range[1], range[2], length.out = length.out)
+  x_s <- (x - mean(Data$twi_10)) / sd(Data$twi_10)
+  
+  for(i in 1:length.out) {
+    expect[ , i] <- exp(samples[[pars[1]]] + samples[[pars[2]]] * x_s[i])
+  }
+  quants <- t(apply(expect, 2, FUN = stats::quantile, probs = probs))
+  quants_df <- data.frame(x, quants)
+  colnames(quants_df) <- c("x", "LCRI", "Median", "UCRI")
+  
+  gg <- ggplot(quants_df, aes(x, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("TWI") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  return(gg)
+}
 
-gg_elev + geom_point(data = N_elev, aes(Elevation, Median))
+gg_N_elev <- plot_elev(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
+gg_N_twi <- plot_twi(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
+gg_N_litter <- plot_litter(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
+gg_N_herb <- plot_herb(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
+gg_N_stream <- plot_stream(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
 
-ggplot(N_elev, aes(Elevation, Median)) + geom_crossbar(aes(ymin = q25, ymax = q75), width = 10, fill = "lightblue", colour = "lightblue") + geom_point() + ylab("Abundance") + geom_point(aes(Elevation, PJORmin, colour = "red"), size = 1) # + geom_legend("Max Count")
+library(ggpubr)
+gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream + rremove("x.text"), 
+          labels = c("A", "B", "C", "D"),
+          ncol = 2, nrow = 2)
+gg_N
 
 
+# same thing for detection
+
+
+#----- EWIL -----
+
+site_od_full_ewil <- readRDS(file = "Results/Stan/final_od_ewil_hmc.Rds")
+
+gg_N_elev <- plot_elev(site_od_full_ewil)
+gg_N_twi <- plot_twi(site_od_full_ewil)
+gg_N_litter <- plot_litter(site_od_full_ewil)
+gg_N_herb <- plot_herb(site_od_full_ewil)
+gg_N_stream <- plot_stream(site_od_full_ewil)
+
+
+# library(tidybayes)
+
+
+# N_hat_pjor <- matrix(NA, length(samples$alpha0), length(elevation_s))
+# for(i in 1:length(samples$alpha0)) {
+#   N_hat_pjor[i, ] <- exp(samples$alpha0[i] + samples$alpha1[i] * elevation_s + samples$alpha2[i] * elevation_s * elevation_s)
+# }
+# quants <- t(apply(as.matrix(N_hat_pjor), 2, FUN = stats::quantile, probs = c(0.025, 0.5, 0.975)))
+# quants_df <- data.frame(elevation, quants)
+# colnames(quants_df) <- c("Elevation", "LCRI", "Median", "UCRI")
+# 
+# PJORmin <- apply(PJOR5, 1, max) 
+# 
+# N_pjor <- data.frame(summary(site_od_full_pjor, digits = 3, par = c("N"))$summary)
+# colnames(N_pjor) <- c("mean", "se_mean", "sd", "q2.5", "q25", "Median", "q75", "q97.5", "n_eff", "Rhat")
+# 
+# # not lining up correctly???????
+# N_elev <- data.frame(Elevation = Data5$elev, N_pjor, PJORmin) # not sure if these line up the elevations correctly
+# 
+# gg_elev <- ggplot(quants_df, aes(Elevation, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + ylab("Abundance")  # + ggtitle(expression(paste(italic("Pethodon jordani")))) # 
+# 
+# gg_elev + geom_point(data = N_elev, aes(Elevation, Median))
+# 
+# ggplot(N_elev, aes(Elevation, Median)) + geom_crossbar(aes(ymin = q25, ymax = q75), width = 10, fill = "lightblue", colour = "lightblue") + geom_point() + ylab("Abundance") + geom_point(aes(Elevation, PJORmin), colour = "red", size = 1) # + geom_legend("Max Count")
+# 
 
 
 
