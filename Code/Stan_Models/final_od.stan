@@ -108,7 +108,8 @@ model {
 }
 
 generated quantities {
-  int<lower=0> N[R];                  // Abundance (must be at least max_y)
+  // int<lower=0> N[R];                  // Abundance (must be at least max_y)
+  int N[R] = max_y;
   // int<lower=0> N_rng[R];              // Abundance proposed by random draw from lambda
   int N_total;
   vector[R] log_lik;
@@ -124,14 +125,22 @@ generated quantities {
   matrix[R, T] E;
   matrix[R, T] E_new;
   int counter[R];
+  // real<lower=0> lambda[R];
+  
+  // for(i in 1:R) {
+  //   
+  // }
   
   for (i in 1:R) {
+    // real sum_p = 0;
+    // real u = uniform_rng(0, 1);
+    
     // calculate vector logliklihood for use in loo for model comparison
     vector[K[i] - max_y[i] + 1] ll;
     
-    for (j in 1:(K[i] - max_y[i] + 1)) {
-      ll[j] = poisson_log_lpmf(max_y[i] + j - 1 | log_lambda[i]) // remake lp because can't use from model statement in generated quantities
-      + binomial_logit_lpmf(y[i] | max_y[i] + j - 1, logit_p[i]);
+    for (k in 1:(K[i] - max_y[i] + 1)) {
+      ll[k] = poisson_log_lpmf(max_y[i] + k - 1 | log_lambda[i]) // remake lp because can't use from model statement in generated quantities
+      + binomial_logit_lpmf(y[i] | max_y[i] + k - 1, logit_p[i]);
     }
     log_lik[i] = log_sum_exp(ll); // for use in loo and multimodel comparison
 
@@ -143,6 +152,17 @@ generated quantities {
         counter[i] += 1;
         if (counter[i] > 100) break;
       }
+      
+      // N[i] = poisson_log_rng(log_lambda[i]);
+      // lambda[i] = exp(log_lambda[i]);
+      // 
+      // for (k in max_y[i]:K[i]) {
+      //   sum_p = sum_p + exp(poisson_lpmf(k | lambda[i]) - poisson_lcdf(K[i] | lambda[i]));
+      //   if (sum_p >= u) {
+      //     N[i] = k;
+      //     break;
+      //   }
+      // }
       
     p[i, 1:T] = inv_logit(logit_p[i, 1:T]);
   }

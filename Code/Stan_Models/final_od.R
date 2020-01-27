@@ -181,7 +181,7 @@ log_lik_1 <- extract_log_lik(site_od_full_pjor, parameter_name = "log_lik", merg
 
 # loo
 r_eff <- relative_eff(exp(log_lik_1)) 
-loo_od <- loo(log_lik_1, r_eff = r_eff, cores = nc)
+loo_od <- loo::loo(log_lik_1, r_eff = r_eff, cores = nc)
 print(loo_od)
 
 psis_od <- psis(log_lik_1, r_eff = r_eff, cores = nc)
