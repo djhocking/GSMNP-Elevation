@@ -397,7 +397,7 @@ pairs(select(df, -transect, -site, -Lat, -Long, -elev_bin, -lon, -lat, -trail), 
 
 #----------- remove NA in independent variables -------------
 
-impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE)) # should be a problem since no data in these dependent variables either
+impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE)) # shouldn't be a problem since no data in these dependent variables either
 Temp.s <- impute.mean(Temp.s)
 RH.s <- impute.mean(RH.s)
 Precip.s <- impute.mean(Precip.s)
@@ -527,7 +527,7 @@ for(i in 2:n.transects) {
 
 n.sites <- length(unique(Data5$site_stan))
 
-save(Data, Data5, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJOR5, EWIL5, DWRI5, elev5, stream5, twi5, litter5, RH5, temp5, precip5, gcover5, n.transects, n.surveys, n.sites,  file = "Data/Derived/stan_prep.RData")
+save(Data, Data5, Precip.s, Temp.s, RH.s, solar, twi, elev, slope, aspectE, aspectN, trail, site, canopy, gcover, litterdepth, ltwi, stream, d_m, d_km, n.transects, n.sites, n.surveys, PJOR, PJOR5, EWIL5, DWRI5, elev5, stream5, twi5, litter5, RH5, temp5, precip5, gcover5, n.transects, n.surveys, n.sites, rows,  file = "Data/Derived/stan_prep.RData")
 
 
 
