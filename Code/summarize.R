@@ -141,14 +141,14 @@ N_labels <- c("Intercept", "Elevation", expression(Elevation^2), "TWI", "Litter"
 sims_mat <- as.matrix(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N")) 
  
 # mcmc_intervals(sims_mat, regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + rstan:::rstanvis_multiparam_theme()
-mcmc_intervals(sims_mat, regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + theme_bw_journal() + ggtitle(expression(paste(italic("P. jordani"))))
+# mcmc_intervals(sims_mat, regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + theme_bw_journal() + ggtitle(expression(paste(italic("P. jordani"))))
 mcmc_areas(sims_mat, area_method = "scaled height", prob = 0.5, prob_outer = 0.95, point_est = "median", regex_pars = "beta") + scale_y_discrete(labels = detection_labels) + theme_bw_journal() + ggtitle(expression(paste(italic("P. jordani"))))
 ggsave("Results/Stan/Figures/posteriors_p_pjor.pdf", dpi = 1000)
 
 # stan_plot(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6")) + scale_y_discrete(labels = N_labels)
 
-mcmc_intervals(sims_mat, regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal()
-mcmc_areas(sims_mat, area_method = "scaled height", prob = 0.5, prob_outer = 0.95, point_est = "median", regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal()
+# mcmc_intervals(sims_mat, regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal()
+mcmc_areas(sims_mat, area_method = "scaled height", prob = 0.5, prob_outer = 0.95, point_est = "median", regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal() + ggtitle(expression(paste(italic("P. jordani"))))
 ggsave("Results/Stan/Figures/posteriors_N_pjor.pdf", dpi = 1000)
 
 
@@ -191,7 +191,7 @@ ggsave("Results/Stan/Figures/posteriors_N_pjor.pdf", dpi = 1000)
 
 
 samples <- rstan::extract(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N"))
-hist(samples$alpha0)
+# hist(samples$alpha0)
 
 # Effect of Beta1 - elevation
 
@@ -221,11 +221,11 @@ hist(samples$alpha0)
 #   
 # }
 
-plot_elev <- function(fit, pars = c("alpha0", "alpha1", "alpha2"), data = Data, range = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
+plot_elev <- function(fit, pars = c("alpha0", "alpha1", "alpha2"), data = Data, limits = NULL, length.out = 1000, probs = c(0.05, 0.50, 0.95)) {
   samples <- rstan::extract(fit, pars = pars)
   expect <- matrix(NA_real_, length(samples$alpha0), length.out)
-  if(is.null(range)) range <- base::range(Data$elev)
-  x <- seq(min, max, length.out = length.out)
+  if(is.null(limits)) limits <- base::range(Data$elev)
+  x <- seq(limits[1], limits[2], length.out = length.out)
   xs <- (x - mean(Data$elev)) / sd(Data$elev)
   
   for(i in 1:length.out) {
@@ -311,18 +311,19 @@ plot_twi <- function(fit, pars = c("alpha0", "alpha3"), data = Data, range = NUL
   return(gg)
 }
 
-gg_N_elev <- plot_elev(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
-gg_N_twi <- plot_twi(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
-gg_N_litter <- plot_litter(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
-gg_N_herb <- plot_herb(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
-gg_N_stream <- plot_stream(site_od_full_pjor) + coord_cartesian(ylim = c(0, 70))
+gg_N_elev <- plot_elev(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
+gg_N_twi <- plot_twi(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
+gg_N_litter <- plot_litter(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
+gg_N_herb <- plot_herb(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
+gg_N_stream <- plot_stream(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
 
 library(ggpubr)
 gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream + rremove("x.text"), 
           # labels = c("A", "B", "C", "D"),
           ncol = 2, nrow = 2)
+gg_N <- annotate_figure(gg_N, top = text_grob(expression(paste(italic("P. jordani"))), face = "bold", size = 15))
 gg_N
-save("Results/Stan/Figures/abundance_pjor.pdf", dpi = 1000)
+ggsave(filename = "Results/Stan/Figures/abundance_pjor.pdf", gg_N, dpi = 1000)
 
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_pjor, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
@@ -336,6 +337,7 @@ gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)),
                   gg_p_RH + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab") 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
+gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("P. jordani"))), face = "bold", size = 15)) # rel(1.5))) # adjust sizes
 gg_p
 ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_pjor.pdf", width = 8, height = 6)
 
@@ -364,17 +366,19 @@ ggsave("Results/Stan/Figures/posteriors_N_ewil.pdf", dpi = 1000)
 
 samples <- rstan::extract(site_od_full_ewil, pars = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N"))
 
-gg_N_elev <- plot_elev(site_od_full_ewil) + coord_cartesian(ylim = c(0, 70))
-gg_N_twi <- plot_twi(site_od_full_ewil) + coord_cartesian(ylim = c(0, 70))
-gg_N_litter <- plot_litter(site_od_full_ewil) + coord_cartesian(ylim = c(0, 70))
-gg_N_herb <- plot_herb(site_od_full_ewil) + coord_cartesian(ylim = c(0, 70))
-gg_N_stream <- plot_stream(site_od_full_ewil) + coord_cartesian(ylim = c(0, 70))
+gg_N_elev <- plot_elev(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
+gg_N_twi <- plot_twi(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
+gg_N_litter <- plot_litter(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
+gg_N_herb <- plot_herb(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
+gg_N_stream <- plot_stream(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
 
 gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream, 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
+gg_N <- annotate_figure(gg_N, top = text_grob(expression(paste(italic("E. wilderae"))), face = "bold", size = 15))
 gg_N
 ggsave(plot = gg_N, filename = "Results/Stan/Figures/abundance_ewil.pdf", width = 8, height = 6, dpi = 1000)
+rm(gg_N)
 
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_ewil, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
@@ -388,9 +392,10 @@ gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)),
                   gg_p_RH + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab") 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
+gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("E. wilderae"))), face = "bold", size = 15))
 gg_p
 ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_ewil.pdf", width = 8, height = 6, dpi = 1000)
-
+rm(gg_p)
 
 #----- DWRI -----
 
@@ -417,17 +422,19 @@ ggsave("Results/Stan/Figures/posteriors_N_dwri.pdf", dpi = 1000)
 
 samples <- rstan::extract(site_od_full_dwri, pars = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p", "sd_eps", "N"))
 
-gg_N_elev <- plot_elev(site_od_full_dwri) + coord_cartesian(ylim = c(0, 70))
-gg_N_twi <- plot_twi(site_od_full_dwri) + coord_cartesian(ylim = c(0, 70))
-gg_N_litter <- plot_litter(site_od_full_dwri) + coord_cartesian(ylim = c(0, 70))
-gg_N_herb <- plot_herb(site_od_full_dwri) + coord_cartesian(ylim = c(0, 70))
-gg_N_stream <- plot_stream(site_od_full_dwri) + coord_cartesian(ylim = c(0, 70))
+gg_N_elev <- plot_elev(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
+gg_N_twi <- plot_twi(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
+gg_N_litter <- plot_litter(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
+gg_N_herb <- plot_herb(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
+gg_N_stream <- plot_stream(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
 
 gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream, 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
+gg_N <- annotate_figure(gg_N, top = text_grob(expression(paste(italic("D. wrighti"))), face = "bold", size = 15))
 gg_N
 ggsave(plot = gg_N, filename = "Results/Stan/Figures/abundance_dwri.pdf", width = 8, height = 6, dpi = 1000)
+rm(gg_N)
 
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_dwri, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
@@ -441,6 +448,7 @@ gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)),
                   gg_p_RH + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab") 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
+gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("D. wrighti"))), face = "bold", size = 15))
 gg_p
 ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_dwri.pdf", width = 8, height = 6, dpi = 1000)
 

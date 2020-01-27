@@ -167,29 +167,6 @@ site_od_full_pjor <- stan("Code/Stan_Models/final_od.stan",
                           verbose = TRUE)
 saveRDS(site_od_full_pjor, file = "Results/Stan/final_od_pjor_hmc.Rds")
 
-#---- Leftovers -----
-
-# print(site_od_full_pjor, par = "log_lik", digits = 2)
-
-library("rstanarm")
-library("bayesplot")
-library("loo")
-
-# Extract pointwise log-likelihood and compute LOO
-log_lik_1 <- extract_log_lik(site_od_full_pjor, parameter_name = "log_lik", merge_chains = FALSE)
-
-# remove all -inf
-
-# loo
-r_eff <- relative_eff(exp(log_lik_1)) 
-loo_od <- loo::loo(log_lik_1, r_eff = r_eff, cores = nc)
-print(loo_od)
-
-psis_od <- psis(log_lik_1, r_eff = r_eff, cores = nc)
-print(psis_od)
-
-loo_od <- list(loo = loo_od, psis = psis_od, r_eff = r_eff)
-saveRDS(loo_od, file = "Results/Stan/site_od_full_pjor_loo.Rds")
 
 #----- Cleanup -----
 

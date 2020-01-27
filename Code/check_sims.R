@@ -12,11 +12,13 @@ library(tidyr)
 library(loo)
 # library(rstanarm)
 library(bayesplot)
+library(parallel)
 
 #----- Set Defaults and Conditions ------
 
 #----- Load Data and Results -----
 
+load(file = "Data/Derived/settings.RData")
 load("Data/Derived/stan_prep.RData")
 site_od_full_pjor <- readRDS(file = "Results/Stan/final_od_pjor_hmc.Rds")
 
@@ -55,7 +57,7 @@ for(i in 1:(ceiling(159 / n))) {
   ggsave(hists, file = paste0("Results/Stan/pjor_N_hist", i, ".pdf"))
   print(hists)
 }
-
+dev.off()
 # mcmc_dens(site_od_full_pjor, pars = c("N[100]", "N[120]"))
 
 # check detection
@@ -84,21 +86,22 @@ color_scheme_set("darkgray")
 
 # look at variance terms because usually the hardest to fit
 color_scheme_set("darkgray")
-mcmc_scatter(
-  site_od_full_pjor,
-  pars = c("sd_eps", "sd_p"), 
-  np = nuts_params(site_od_full_pjor), 
-  np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
-)
+# mcmc_scatter(
+#   site_od_full_pjor,
+#   pars = c("sd_eps", "sd_p"), 
+#   np = nuts_params(site_od_full_pjor), 
+#   np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
+# )
 
 mcmc_pairs(
   site_od_full_pjor,
-  pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p"), 
+  pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p", "lp__"), 
+  off_diag_args = list(alpha = 0.1),
   np = nuts_params(site_od_full_pjor), 
   np_style = scatter_style_np(div_color = "green", div_alpha = 0.8)
 )
 
-pairs(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p", "lp__"))
+# pairs(site_od_full_pjor, pars = c("alpha0", "alpha1", "alpha2", "beta0", "sd_eps", "sd_p", "lp__"))
 
 #----- Check Energy and Treedepth -----
 
@@ -182,6 +185,40 @@ sqrt(sum(((y_long$value - colMeans(y_new_mat))^2) / nrow(y_long)))
 #----- Prior vs. Postior Distributions -----
 
 
+#----- Leave one (site) out cross validation -----
+
+# print(site_od_full_pjor, par = "log_lik", digits = 2)
+
+# Extract pointwise log-likelihood and compute LOO
+log_lik_1 <- extract_log_lik(site_od_full_pjor, parameter_name = "log_lik", merge_chains = FALSE)
+
+# remove all -inf
+
+# loo
+r_eff <- relative_eff(exp(log_lik_1)) 
+loo_od <- loo::loo(log_lik_1, r_eff = r_eff, cores = nc)
+print(loo_od)
+pareto_k_table(loo_od)
+
+loo_od <- loo::loo(log_lik_1, r_eff = r_eff, cores = parallel::detectCores(), K = 10)
+loo_od
+plot(loo_od)
+
+# yrep <- posterior_predict(site_od_full_pjor)
+# 
+# ppc_loo_pit_overlay(
+#   y = roaches$y,
+#   yrep = yrep,
+#   lw = weights(loo1$psis_object)
+# )
+
+psis_od <- psis(log_lik_1, r_eff = r_eff, cores = nc)
+print(psis_od)
+pareto_k_table(psis_od)
+plot(psis_od, label_points = TRUE)
+
+loo_od <- list(loo = loo_od, psis = psis_od, r_eff = r_eff)
+saveRDS(loo_od, file = "Results/Stan/site_od_full_pjor_loo.Rds")
 
 
 #----- Other -----
