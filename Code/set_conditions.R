@@ -15,8 +15,8 @@ if(testing) {
   K_ewil = apply(EWIL5, 1, max) + 10
   K_dwri = apply(DWRI5, 1, max) + 10
 } else {
-  nb = 1000
-  ni = 2000
+  nb = 2000
+  ni = 4000
   nt = 2
   nc <- 6 # parallel::detectCores()
   K_pjor = as.integer((apply(PJOR5, 1, max)) / 0.1 + 10) # should go back to getting variable K code working even if more bookeeping - waiting massive time and resources on 90% of sites

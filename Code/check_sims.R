@@ -139,7 +139,8 @@ mean(fit_new > fit) # Bayesian p-value - not sure why it's much worse than JAGS 
 y_sum <- data.frame(transect = rownames(PJOR5), y_sum = rowSums(PJOR5), stringsAsFactors = FALSE)
 y_sum_new <- rstan::extract(site_od_full_pjor, pars = c("y_new_sum"))
 
-ppc_scatter_avg(y = y_sum$y_sum, yrep = y_sum_new[[1]]) # average posterior across samples
+ppc_scatter_avg(y = y_sum$y_sum, yrep = y_sum_new[[1]]) + xlab("Mean expected count") + ylab("Observed count") + ggtitle("P. jordani") + theme(plot.title = element_text(face = "italic")) # average posterior across samples
+ggsave("Results/Stan/ppc_pjor.pdf", dpi = 1000)
 
 ppc_scatter(y = y_sum$y_sum, yrep = y_sum_new[[1]][sample(1:nrow(y_sum_new[[1]]), size = 16, replace = FALSE) , ]) # iteration specific for 16 random otherwise too hard to plot. Maybe could overlay but probably unnecessary to see all iterations when things generally look very good
 
