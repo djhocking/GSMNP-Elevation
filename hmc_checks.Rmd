@@ -1,6 +1,8 @@
 ---
 title: "HMC Diagnostics"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -400,7 +402,7 @@ Examine posterior prredictions of total counts across all 5 visits
 y_sum <- data.frame(transect = rownames(DWRI5), y_sum = rowSums(DWRI5), stringsAsFactors = FALSE)
 y_sum_new <- rstan::extract(site_od_full_dwri, pars = c("y_new_sum"))
 
-ppc_scatter_avg(y = y_sum$y_sum, yrep = y_sum_new[[1]]) + xlab("Mean expected count") + ylab("Observed count") + ggtitle("P. jordani") + theme(plot.title = element_text(face = "italic")) # average posterior across samples
+ppc_scatter_avg(y = y_sum$y_sum, yrep = y_sum_new[[1]]) + xlab("Mean expected count") + ylab("Observed count") + ggtitle("D. wrighti") + theme(plot.title = element_text(face = "italic")) # average posterior across samples
 ggsave("Results/Stan/ppc_dwri.pdf", dpi = 1000)
 
 # ppc_scatter(y = y_sum$y_sum, yrep = y_sum_new[[1]][sample(1:nrow(y_sum_new[[1]]), size = 16, replace = FALSE) , ]) # iteration specific for 16 random otherwise too hard to plot. Maybe could overlay but probably unnecessary to see all iterations when things generally look very good
@@ -563,7 +565,7 @@ Examine posterior prredictions of total counts across all 5 visits
 y_sum <- data.frame(transect = rownames(EWIL5), y_sum = rowSums(EWIL5), stringsAsFactors = FALSE)
 y_sum_new <- rstan::extract(site_od_full_ewil, pars = c("y_new_sum"))
 
-ppc_scatter_avg(y = y_sum$y_sum, yrep = y_sum_new[[1]]) + xlab("Mean expected count") + ylab("Observed count") + ggtitle("P. jordani") + theme(plot.title = element_text(face = "italic")) # average posterior across samples
+ppc_scatter_avg(y = y_sum$y_sum, yrep = y_sum_new[[1]]) + xlab("Mean expected count") + ylab("Observed count") + ggtitle("E. wilderae") + theme(plot.title = element_text(face = "italic")) # average posterior across samples
 ggsave("Results/Stan/ppc_ewil.pdf", dpi = 1000)
 
 # ppc_scatter(y = y_sum$y_sum, yrep = y_sum_new[[1]][sample(1:nrow(y_sum_new[[1]]), size = 16, replace = FALSE) , ]) # iteration specific for 16 random otherwise too hard to plot. Maybe could overlay but probably unnecessary to see all iterations when things generally look very good
