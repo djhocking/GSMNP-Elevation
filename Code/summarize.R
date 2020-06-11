@@ -339,7 +339,8 @@ gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)),
                   ncol = 2, nrow = 2)
 gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("P. jordani"))), face = "bold", size = 15)) # rel(1.5))) # adjust sizes
 gg_p
-ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_pjor.pdf", width = 8, height = 6)
+ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_pjor.png", width = 8, height = 6)
+ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_pjor.pdf", width = 8, height = 6, dpi = 1000)
 
 #----- EWIL -----
 
