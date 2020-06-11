@@ -328,7 +328,7 @@ ggsave(filename = "Results/Stan/Figures/abundance_pjor.pdf", width = 8, height =
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_pjor, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
 gg_p_precip <- plot_cond(site_od_full_pjor, var = c("precip1", "precip2", "precip3", "precip4", "precip5", "precip6"), pars = c("beta0", "beta3"), link = "logit") + xlab("Precip. in past 24-hr (mm)") + ylab("Prob. of detection")
-gg_p_ground <- plot_cond(site_od_full_pjor, var = c("ground1", "ground2", "ground3", "ground4", "ground5", "ground6"), pars = c("beta0", "beta4", "beta5"), link = "logit") + xlab("Herbaceous ground cover (%)") + ylab("Prob. of detection")
+gg_p_ground <- plot_cond(site_od_full_pjor, var = c("gcover"), pars = c("beta0", "beta4", "beta5"), link = "logit") + xlab("Herbaceous ground cover (%)") + ylab("Prob. of detection")
 gg_p_RH <- plot_cond(site_od_full_pjor, var = c("RH1", "RH2", "RH3", "RH4", "RH5", "RH6"), pars = c("beta0", "beta6"), link = "logit") + xlab("Relative humidity (%)") + ylab("Prob. of detection")
 
 gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)), 
@@ -384,7 +384,7 @@ rm(gg_N)
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_ewil, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
 gg_p_precip <- plot_cond(site_od_full_ewil, var = c("precip1", "precip2", "precip3", "precip4", "precip5", "precip6"), pars = c("beta0", "beta3"), link = "logit") + xlab("Precip. in past 24-hr (mm)") + ylab("Prob. of detection")
-gg_p_ground <- plot_cond(site_od_full_ewil, var = c("ground1", "ground2", "ground3", "ground4", "ground5", "ground6"), pars = c("beta0", "beta4", "beta5"), link = "logit") + xlab("Herbaceous ground cover (%)") + ylab("Prob. of detection")
+gg_p_ground <- plot_cond(site_od_full_ewil, var = c("gcover"), pars = c("beta0", "beta4", "beta5"), link = "logit") + xlab("Herbaceous ground cover (%)") + ylab("Prob. of detection")
 gg_p_RH <- plot_cond(site_od_full_ewil, var = c("RH1", "RH2", "RH3", "RH4", "RH5", "RH6"), pars = c("beta0", "beta6"), link = "logit") + xlab("Relative humidity (%)") + ylab("Prob. of detection")
 
 gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)), 
@@ -440,7 +440,7 @@ rm(gg_N)
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_dwri, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
 gg_p_precip <- plot_cond(site_od_full_dwri, var = c("precip1", "precip2", "precip3", "precip4", "precip5", "precip6"), pars = c("beta0", "beta3"), link = "logit") + xlab("Precip. in past 24-hr (mm)") + ylab("Prob. of detection")
-gg_p_ground <- plot_cond(site_od_full_dwri, var = c("ground1", "ground2", "ground3", "ground4", "ground5", "ground6"), pars = c("beta0", "beta4", "beta5"), link = "logit") + xlab("Herbaceous ground cover (%)") + ylab("Prob. of detection")
+gg_p_ground <- plot_cond(site_od_full_dwri, var = c("gcover"), pars = c("beta0", "beta4", "beta5"), link = "logit") + xlab("Herbaceous ground cover (%)") + ylab("Prob. of detection")
 gg_p_RH <- plot_cond(site_od_full_dwri, var = c("RH1", "RH2", "RH3", "RH4", "RH5", "RH6"), pars = c("beta0", "beta6"), link = "logit") + xlab("Relative humidity (%)") + ylab("Prob. of detection")
 
 gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)), 
