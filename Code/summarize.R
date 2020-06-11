@@ -149,7 +149,7 @@ ggsave("Results/Stan/Figures/posteriors_p_pjor.pdf", dpi = 1000)
 
 # mcmc_intervals(sims_mat, regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal()
 mcmc_areas(sims_mat, area_method = "scaled height", prob = 0.5, prob_outer = 0.95, point_est = "median", regex_pars = "alpha") + scale_y_discrete(labels = N_labels) + theme_bw_journal() + ggtitle(expression(paste(italic("P. jordani"))))
-ggsave("Results/Stan/Figures/posteriors_N_pjor.pdf", dpi = 1000)
+ggsave("Results/Stan/Figures/posteriors_N_pjor.pdf", width = 8, height = 6, dpi = 1000)
 
 
 
@@ -271,7 +271,7 @@ plot_herb <- function(fit, pars = c("alpha0", "alpha5"), data = Data, range = NU
   quants_df <- data.frame(x, quants)
   colnames(quants_df) <- c("x", "LCRI", "Median", "UCRI")
   
-  gg <- ggplot(quants_df, aes(x, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Herbeceous ground cover (%)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
+  gg <- ggplot(quants_df, aes(x, Median)) + geom_line() + geom_ribbon(aes(ymin = LCRI, ymax = UCRI), alpha=0.3) + xlab("Herbaceous ground cover (%)") + ylab("Abundance") # + ggtitle(expression(paste(italic("Pethodon jordani")))) #
   return(gg)
 }
 
@@ -318,12 +318,12 @@ gg_N_herb <- plot_herb(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
 gg_N_stream <- plot_stream(site_od_full_pjor) + coord_cartesian(ylim = c(0, 115))
 
 library(ggpubr)
-gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream + rremove("x.text"), 
+gg_N <- ggarrange(gg_N_elev, gg_N_litter + ylab(""), gg_N_herb, gg_N_stream + ylab(""), 
           # labels = c("A", "B", "C", "D"),
           ncol = 2, nrow = 2)
 gg_N <- annotate_figure(gg_N, top = text_grob(expression(paste(italic("P. jordani"))), face = "bold", size = 15))
 gg_N
-ggsave(filename = "Results/Stan/Figures/abundance_pjor.pdf", gg_N, dpi = 1000)
+ggsave(filename = "Results/Stan/Figures/abundance_pjor.pdf", width = 8, height = 6, gg_N, dpi = 1000)
 
 # same thing for detection
 gg_p_temp <- plot_cond(site_od_full_pjor, var = c("temp1", "temp2", "temp3", "temp4", "temp5", "temp6"), pars = c("beta0", "beta1", "beta2"), link = "logit") + xlab("Temperature (C)") + ylab("Prob. of detection")
@@ -332,9 +332,9 @@ gg_p_ground <- plot_cond(site_od_full_pjor, var = c("ground1", "ground2", "groun
 gg_p_RH <- plot_cond(site_od_full_pjor, var = c("RH1", "RH2", "RH3", "RH4", "RH5", "RH6"), pars = c("beta0", "beta6"), link = "logit") + xlab("Relative humidity (%)") + ylab("Prob. of detection")
 
 gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)), 
-                  gg_p_precip + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab")
+                  gg_p_precip + coord_cartesian(ylim = c(0, 0.6)) + ylab(""), # + rremove("y.text") + rremove("ylab")
                   gg_p_ground + coord_cartesian(ylim = c(0, 0.6)), 
-                  gg_p_RH + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab") 
+                  gg_p_RH + coord_cartesian(ylim = c(0, 0.6)) + ylab(""), # + rremove("y.text") + rremove("ylab") 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
 gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("P. jordani"))), face = "bold", size = 15)) # rel(1.5))) # adjust sizes
@@ -373,7 +373,7 @@ gg_N_litter <- plot_litter(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
 gg_N_herb <- plot_herb(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
 gg_N_stream <- plot_stream(site_od_full_ewil) + coord_cartesian(ylim = c(0, 20))
 
-gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream, 
+gg_N <- ggarrange(gg_N_elev, gg_N_litter + ylab(""), gg_N_herb, gg_N_stream + ylab(""), 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
 gg_N <- annotate_figure(gg_N, top = text_grob(expression(paste(italic("E. wilderae"))), face = "bold", size = 15))
@@ -388,9 +388,9 @@ gg_p_ground <- plot_cond(site_od_full_ewil, var = c("ground1", "ground2", "groun
 gg_p_RH <- plot_cond(site_od_full_ewil, var = c("RH1", "RH2", "RH3", "RH4", "RH5", "RH6"), pars = c("beta0", "beta6"), link = "logit") + xlab("Relative humidity (%)") + ylab("Prob. of detection")
 
 gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)), 
-                  gg_p_precip + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab")
+                  gg_p_precip + coord_cartesian(ylim = c(0, 0.6)) + ylab(""), # + rremove("y.text") + rremove("ylab")
                   gg_p_ground + coord_cartesian(ylim = c(0, 0.6)), 
-                  gg_p_RH + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab") 
+                  gg_p_RH + coord_cartesian(ylim = c(0, 0.6)) + ylab(""), # + rremove("y.text") + rremove("ylab") 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
 gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("E. wilderae"))), face = "bold", size = 15))
@@ -429,7 +429,7 @@ gg_N_litter <- plot_litter(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
 gg_N_herb <- plot_herb(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
 gg_N_stream <- plot_stream(site_od_full_dwri) + coord_cartesian(ylim = c(0, 20))
 
-gg_N <- ggarrange(gg_N_elev, gg_N_litter, gg_N_herb, gg_N_stream, 
+gg_N <- ggarrange(gg_N_elev, gg_N_litter + ylab(""), gg_N_herb, gg_N_stream + ylab(""), 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
 gg_N <- annotate_figure(gg_N, top = text_grob(expression(paste(italic("D. wrighti"))), face = "bold", size = 15))
@@ -444,9 +444,9 @@ gg_p_ground <- plot_cond(site_od_full_dwri, var = c("ground1", "ground2", "groun
 gg_p_RH <- plot_cond(site_od_full_dwri, var = c("RH1", "RH2", "RH3", "RH4", "RH5", "RH6"), pars = c("beta0", "beta6"), link = "logit") + xlab("Relative humidity (%)") + ylab("Prob. of detection")
 
 gg_p <- ggarrange(gg_p_temp + coord_cartesian(ylim = c(0, 0.6)), 
-                  gg_p_precip + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab")
+                  gg_p_precip + coord_cartesian(ylim = c(0, 0.6)) + ylab(""), # + rremove("y.text") + rremove("ylab")
                   gg_p_ground + coord_cartesian(ylim = c(0, 0.6)), 
-                  gg_p_RH + coord_cartesian(ylim = c(0, 0.6)), # + rremove("y.text") + rremove("ylab") 
+                  gg_p_RH + coord_cartesian(ylim = c(0, 0.6)) + ylab(""), # + rremove("y.text") + rremove("ylab") 
                   # labels = c("A", "B", "C", "D"),
                   ncol = 2, nrow = 2)
 gg_p <- annotate_figure(gg_p, top = text_grob(expression(paste(italic("D. wrighti"))), face = "bold", size = 15))
@@ -454,6 +454,34 @@ gg_p
 ggsave(plot = gg_p, filename = "Results/Stan/Figures/detection_dwri.pdf", width = 8, height = 6, dpi = 1000)
 
 
+#---------- Combined table ------------
 
+detection_labels <- c("Intercept", "Temperature", "Temperature^2", "Precip-24h", "Herbaceous", "Herbaceous^2", "Rel-Humidity", "Random Obs. SD")
+
+N_labels <- c("Intercept", "Elevation", "Elevation^2", "TWI", "Litter", "Herbaceous", "Stream-Dist", "Site SD")
+
+library(tibble)
+pjor_sum <- summary(site_od_full_pjor, digits = 3, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "sd_eps", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p"))$summary %>%
+  data.frame() %>%
+  dplyr::mutate(parameter = rownames(.)) %>%
+  add_column(Variable = c(N_labels, detection_labels)) %>%
+  select(Variable, Mean = mean, X2.5., X97.5.)
+
+dwri_sum <- summary(site_od_full_dwri, digits = 3, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "sd_eps", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p"))$summary %>%
+  data.frame() %>%
+  dplyr::mutate(parameter = rownames(.)) %>%
+  add_column(Variable = c(N_labels, detection_labels)) %>%
+  select(Variable, Mean = mean, X2.5., X97.5.)
+
+ewil_sum <- summary(site_od_full_ewil, digits = 3, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "sd_eps", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p"))$summary %>%
+  data.frame() %>%
+  dplyr::mutate(parameter = rownames(.)) %>%
+  add_column(Variable = c(N_labels, detection_labels)) %>%
+  select(Variable, Mean = mean, X2.5., X97.5.)
+
+summary_table_3sp <- data.frame(pjor_sum, dwri_sum[2:4], ewil_sum[2:4])
+write.csv(summary_table_3sp, file = "Results/Stan/summary_table_3sp.csv", row.names = FALSE)
+
+# sims_mat <- as.matrix(site_od_full_pjor, par = c("alpha0", "alpha1", "alpha2", "alpha3", "alpha4", "alpha5", "alpha6", "sd_eps", "beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "beta6", "sd_p"))
 
 
