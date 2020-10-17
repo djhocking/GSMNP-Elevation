@@ -1,6 +1,7 @@
 ---
-title: "Appendix B: HMC Diagnostics"
+title: 'Appendix B: HMC Diagnostics'
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -8,8 +9,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
-
-## Script for checking MCMC/HMC diagnostics - this might be better as an Rmd to just have one output for supplemental publication
 
 ```{r}
 #----- Load Libraries ------
@@ -81,9 +80,11 @@ mcmc_dens(site_od_full_pjor, pars = c("mean_detection"))
 
 ## Check Divergences and Pairwise Correlations
 
-```{r}
+```{r, message = TRUE}
 check_divergences(site_od_full_pjor)
+```
 
+```{r}
 color_scheme_set("darkgray")
 # mcmc_scatter(
 #   as.matrix(site_od_full_pjor),
@@ -121,10 +122,12 @@ mcmc_pairs(
 
 ## Check Energy and Treedepth
 
-```{r}
-check_energy(site_od_full_pjor)
+```{r, message=TRUE}
+message(check_energy(site_od_full_pjor))
+```
 
-check_treedepth(site_od_full_pjor)
+```{r, message=TRUE}
+message(check_treedepth(site_od_full_pjor))
 ```
 
 ## Summarize Samples Sizes and Mixing
@@ -336,9 +339,11 @@ mcmc_dens(site_od_full_dwri, pars = c("mean_detection"))
 
 ## Check Divergences and Pairwise Correlations
 
-```{r}
-check_divergences(site_od_full_dwri)
+```{r, message = TRUE}
+message(check_divergences(site_od_full_dwri))
+```
 
+```{r}
 color_scheme_set("darkgray")
 
 # look at variance terms because usually the hardest to fit
@@ -355,10 +360,12 @@ mcmc_pairs(
 
 ## Check Energy and Treedepth
 
-```{r}
-check_energy(site_od_full_dwri)
+```{r, message=TRUE}
+message(check_energy(site_od_full_dwri))
+```
 
-check_treedepth(site_od_full_dwri)
+```{r, message = TRUE}
+message(check_treedepth(site_od_full_dwri))
 ```
 
 ## Summarize Samples Sizes and Mixing
@@ -497,7 +504,7 @@ mcmc_dens(site_od_full_ewil, pars = c("mean_detection"))
 
 ## Check Divergences and Pairwise Correlations
 
-```{r}
+```{r, message = TRUE}
 check_divergences(site_od_full_ewil)
 
 color_scheme_set("darkgray")
@@ -516,7 +523,7 @@ mcmc_pairs(
 
 ## Check Energy and Treedepth
 
-```{r}
+```{r, message=TRUE}
 check_energy(site_od_full_ewil)
 
 check_treedepth(site_od_full_ewil)
