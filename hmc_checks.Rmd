@@ -1,5 +1,5 @@
 ---
-title: "HMC Diagnostics"
+title: "Appendix B: HMC Diagnostics"
 output:
   html_document:
     df_print: paged
@@ -74,8 +74,6 @@ dev.off()
 ```
 
 ### Check detection
-
-# In simulations abundance esimates are unreliable when detection gets below 20%
 
 ```{r}
 mcmc_dens(site_od_full_pjor, pars = c("mean_detection"))
@@ -288,7 +286,7 @@ lp <- unlist(site_od_full_pjor@sim$samples[[1]]["lp__"])[(nb+1):ni]
 pairs(data.frame(energy__1, alpha0, alpha1, alpha2, beta0, sd_eps, sd_p))
 -->
 
-
+\newpage
 
 ## *Desmognathus wrighti*
 
@@ -331,8 +329,6 @@ dev.off()
 ```
 
 ### Check detection
-
-# In simulations abundance esimates are unreliable when detection gets below 20%
 
 ```{r}
 mcmc_dens(site_od_full_dwri, pars = c("mean_detection"))
@@ -494,8 +490,6 @@ dev.off()
 ```
 
 ### Check detection
-
-# In simulations abundance esimates are unreliable when detection gets below 20%
 
 ```{r}
 mcmc_dens(site_od_full_ewil, pars = c("mean_detection"))
